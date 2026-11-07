@@ -34,7 +34,7 @@
 
 ### A. Anmeldung
 
-Einfaches Login mit Administrator- und Testrolle. Keine öffentliche Datenverarbeitungsseite ohne Login. Vorbereitete synthetische Demo kann nach Login gestartet werden. Keine echten Zugangsdaten im Repository oder Frontend. Die Kopfleiste bleibt beim Scrollen sichtbar. Administratoren können die geöffneten Modelleinstellungen über „Schließen“ oder per Escape im Einstellungsbereich verlassen.
+Einfaches Login mit Administrator- und Testrolle. Keine öffentliche Datenverarbeitungsseite ohne Login. Vorbereitete synthetische Demo kann nach Login gestartet werden. Keine echten Zugangsdaten im Repository oder Frontend. Die Kopfleiste bleibt beim Scrollen sichtbar. Das Benutzermenü bleibt unten in der Desktop-Seitenleiste erreichbar. Bernstein kennzeichnet den Start der echten KI-Erkennung. Administratoren können die geöffneten Modelleinstellungen über „Schließen“ oder per Escape im Einstellungsbereich verlassen.
 
 ### B. Vorgang anlegen / Fotos importieren
 

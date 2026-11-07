@@ -312,6 +312,7 @@ function renderBatchStatus(batch) {
   const pending = batch.items.some(x => x.status === 'pending' && x.can_recognize);
   $('recognize-all-button').hidden = !pending && !active;
   $('recognize-all-button').disabled = active || state.busy || liveRequired;
+  $('recognize-all-button').classList.toggle('ai-start', state.provider === 'openrouter');
   $('recognize-all-button').textContent = active ? 'Verarbeitung läuft …'
     : state.provider === 'openrouter' ? 'KI-Erkennung starten' : 'Demo-Verarbeitung starten';
   $('retry-button').hidden = !batch.items.some(x => x.status === 'error' && x.can_recognize);
@@ -787,6 +788,7 @@ function renderDetail() {
     : 'Hochgeladenes Original. Noch kein Erkennungsergebnis vorhanden.';
   $('raw-summary').textContent = item.source === 'synthetic_demo' ? 'Vorgegebene Demodaten (JSON)' : 'Unveränderte Modellantwort (JSON)';
   $('raw-json').textContent = item.raw_text || '(noch keine KI-Ausgabe)';
+  $('recognize-one-button').classList.toggle('ai-start', state.provider === 'openrouter');
   $('recognize-one-button').textContent = state.provider === 'openrouter' ? 'KI-Erkennung für dieses Bild starten' : 'Dieses Bild im Demo-Modus verarbeiten';
   $('recognize-one-button').disabled = state.busy || !item.can_recognize ||
     (item.source === 'handwriting_example' && state.provider !== 'openrouter');
