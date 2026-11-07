@@ -210,14 +210,20 @@ function closeDetail() {
 $('back-overview').addEventListener('click', () => {
   closeDetail();
   renderPhotos(currentBatch);
+  updateNextReview(currentBatch);
   $('batch-overview').focus();
   $('batch-overview').scrollIntoView({block:'nearest'});
 });
-async function openBatch(batchId, preferredItem = null) {
+async function openBatch(batchId, preferredItem = null, savedReview = null) {
   clearTimeout(pollTimer);
   const view = ++viewRequest;
   const batch = await json('/api/batches/' + encodeURIComponent(batchId));
   if (view !== viewRequest) return;
+  const next = savedReview && nextReview(batch.items, savedReview.itemId, savedReview.filter);
+  if (next) {
+    preferredItem = next.id;
+    queueFilter = savedReview.filter;
+  }
   closeDetail();
   $('correction-details').open = false;
   $('correction-list').replaceChildren();
@@ -231,7 +237,16 @@ async function openBatch(batchId, preferredItem = null) {
   renderBatchStatus(batch);
   renderBatchList();
   const target = batch.items.find(x => x.id === preferredItem);
-  if (target) await openItem(target.id);
+  if (target) {
+    if (!await openItem(target.id)) return;
+    if (next) focusReviewStart();
+  } else if (savedReview) {
+    $(batch.confirmed === batch.count ? 'export-button' : 'batch-overview').focus();
+  }
+  if (savedReview) {
+    const continuation = next ? ` – weiter mit Bild ${next.sequence}` : '';
+    setMessage(`Bild ${savedReview.sequence} gespeichert${continuation}.`);
+  }
 }
 
 function needsReview(item) {
@@ -249,8 +264,11 @@ function matchesFilter(item, filter) {
   if (filter === 'review_required') return needsReview(item);
   return item.status === filter && (filter !== 'ready' || !item.review_started);
 }
-function nextReview(items, after) {
-  const matches = queueFilter === 'sample' ? item => item.sample_selected : needsReview;
+function reviewMatcher(filter) {
+  return filter === 'sample' ? item => item.sample_selected : needsReview;
+}
+function nextReview(items, after, filter = queueFilter) {
+  const matches = reviewMatcher(filter);
   const index = items.findIndex(x => x.id === after);
   if (index < 0) return items.find(matches);
   return [...items.slice(index + 1), ...items.slice(0, index)].find(matches);
@@ -333,6 +351,7 @@ function renderBatchStatus(batch) {
   if (active) pollTimer = setTimeout(() => refreshRun(batch.id), 800);
   $('export-button').disabled = confirmed === 0;
   renderPhotos(batch);
+  updateReviewProgress();
 }
 
 function renderReviewSummary(batch, complete) {
@@ -400,8 +419,7 @@ async function refreshRun(batchId) {
   }
 }
 function updateNextReview(batch) {
-  $('next-review-button').hidden = !batch.items.some(queueFilter === 'sample'
-    ? item => item.sample_selected : needsReview);
+  $('next-review-button').hidden = !nextReview(batch.items, state.itemId);
   $('next-review-button').classList.toggle('secondary', queueFilter === 'sample');
 }
 function renderPhotos(batch) {
@@ -466,7 +484,7 @@ $('queue-filters').addEventListener('click', event => {
   }
 });
 $('next-review-button').addEventListener('click', () => {
-  const target = nextReview(currentBatch.items, state.itemId) || nextReview(currentBatch.items, null);
+  const target = nextReview(currentBatch.items, state.itemId);
   if (target) openForReview(target.id);
 });
 $('sample-button').addEventListener('click', async () => {
@@ -481,8 +499,7 @@ $('sample-button').addEventListener('click', async () => {
 async function openForReview(itemId) {
   setMessage('');
   try {
-    await openItem(itemId);
-    if (state.itemId === itemId) focusReviewStart();
+    if (await openItem(itemId)) focusReviewStart();
   } catch (e) { errMessage(e); }
 }
 async function openItem(itemId) {
@@ -501,6 +518,8 @@ async function openItem(itemId) {
     b.classList.toggle('selected', selected);
     b.setAttribute('aria-pressed', String(selected));
   }
+  updateNextReview(currentBatch);
+  return true;
 }
 function fieldLabel(field) {
   if (field === 'text') return 'Freitext';
@@ -699,15 +718,33 @@ function renderFinal(item) {
   parent.append(field);
   if (confirmed) parent.append(element('p', confirmationLabel(item), 'status confirmed'));
 }
+function updateReviewProgress() {
+  const item = state.item;
+  if (!item || !currentBatch) return;
+  const filter = item.sample_selected ? 'sample' : 'review_required';
+  const count = currentBatch.items.filter(reviewMatcher(filter)).length;
+  const label = $('review-remaining');
+  label.hidden = !state.editing || count === 0;
+  label.textContent = filter === 'sample' ? `Noch ${count} in der Stichprobe offen`
+    : count === 1 ? 'Noch 1 Prüffall offen' : `Noch ${count} Prüffälle offen`;
+}
 function renderDetail() {
   const item = state.item;
   if (!item) return;
   $('detail-panel').hidden = false;
   $('workflow-overview').hidden = true;
-  $('item-indicator').textContent = `Bild ${item.sequence} · ${LABELS[item.status] || item.status}`;
+  $('detail-header-title').textContent = `Bild ${item.sequence} von ${currentBatch.count}${state.editing ? ' prüfen' : ''}`;
+  $('item-indicator').hidden = state.editing;
+  $('item-indicator').textContent = LABELS[item.status] || item.status;
   $('item-indicator').className = `status ${item.status}`;
-  if (item.image_url) $('source-image').src = item.image_url;
-  else $('source-image').removeAttribute('src');
+  updateReviewProgress();
+  const image = $('source-image');
+  if (item.image_url) {
+    image.src = item.image_url;
+    image.classList.toggle('loading', !image.complete);
+  } else {
+    image.removeAttribute('src');
+  }
   setZoom(false);
   $('source-highlight').setAttribute('hidden', '');
   $('focus-note').textContent = '';
@@ -740,6 +777,9 @@ $('toggle-image-button').addEventListener('click', () => {
   $('source-frame').hidden = !$('source-frame').hidden;
 });
 $('zoom-image-button').addEventListener('click', toggleZoom);
+$('source-image').addEventListener('load', event => {
+  if (event.currentTarget.complete) event.currentTarget.classList.remove('loading');
+});
 $('source-image').addEventListener('click', toggleZoom);
 document.addEventListener('keydown', event => {
   if (event.key === 'Escape') setZoom(false);
@@ -846,7 +886,10 @@ function fieldError(control, message) {
   control.focus();
 }
 $('confirm-button').addEventListener('click', async () => {
-  const {batchId, itemId} = state;
+  const {batchId, itemId, item} = state;
+  const view = viewRequest;
+  const filter = item.sample_selected ? 'sample' : 'review_required';
+  let saved = false;
   try {
     const payload = confirmationPayload();
     if (!$('evidence-wrap').hidden && !payload.evidence_confirmed) {
@@ -864,20 +907,21 @@ $('confirm-button').addEventListener('click', async () => {
     }
     $('confirm-button').disabled = true;
     await json(`/api/batches/${batchId}/items/${itemId}/confirm`, { method:'POST', body:payload });
+    saved = true;
     drafts.delete(itemId);
     dirtyDrafts.delete(itemId);
     trackDraftExit();
-    if (state.batchId === batchId && state.itemId === itemId) {
-      const next = nextReview(currentBatch.items, itemId);
-      await openBatch(batchId, next?.id);
-      if (next) focusReviewStart();
-      else $('batch-overview').focus();
+    if (view === viewRequest) {
+      await openBatch(batchId, null, {itemId, sequence:item.sequence, filter});
     }
-    setMessage('Bogen gespeichert.');
   } catch (e) {
-    if (state.itemId === itemId) inlineError('review-error', e.message);
+    if (saved && state.batchId === batchId) {
+      setMessage(`Bild ${item.sequence} gespeichert. Ansicht konnte nicht aktualisiert werden.`, true);
+    } else if (view === viewRequest) {
+      inlineError('review-error', e.message);
+    }
   } finally {
-    if (state.itemId === itemId) $('confirm-button').disabled = false;
+    if (!saved && view === viewRequest) $('confirm-button').disabled = false;
   }
 });
 

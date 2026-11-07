@@ -127,12 +127,12 @@
               </section>
             </section>
             <div id="detail-panel" hidden>
-              <div class="detail-header"><h2 id="detail-header-title" tabindex="-1">Foto prüfen</h2><span id="item-indicator" class="pill"></span>
+              <div class="detail-header"><h2 id="detail-header-title" tabindex="-1">Foto prüfen</h2><span id="review-remaining" class="status review_required" hidden></span><span id="item-indicator" class="status"></span>
                 <button id="back-overview" class="secondary">Zur Übersicht</button><button class="secondary" id="recognize-one-button">Foto erkennen / erneut versuchen</button></div>
               <nav class="review-jumps" aria-label="Prüfspalten"><a href="#original-pane">Original</a><a href="#recognition-pane">Erkennung</a><a href="#result-pane">Ergebnis</a></nav>
               <div id="review-findings"></div>
               <div id="detail-grid" class="detail-grid">
-                <section class="pane" id="original-pane"><div class="pane-title"><h3><span class="pane-step">01</span> Original</h3><span class="image-actions"><button id="zoom-image-button" class="link-button" aria-expanded="false">Zoom</button><button id="toggle-image-button" class="link-button">Ein-/ausblenden</button></span></div>
+                <section class="pane" id="original-pane"><div class="pane-title"><h3>Original</h3><span class="image-actions"><button id="zoom-image-button" class="link-button" aria-expanded="false">Zoom</button><button id="toggle-image-button" class="link-button">Ein-/ausblenden</button></span></div>
                   <div id="source-frame">
                       <img id="source-image" alt="Original des ausgewählten Fragebogens" />
                       <svg id="source-highlight" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" hidden><rect id="source-region"></rect></svg>
@@ -140,12 +140,12 @@
                   <p id="focus-note" class="small" role="status"></p>
                   <p class="small">Original zur visuellen Gegenprüfung · zum Vergrößern anklicken.</p>
                 </section>
-                <section class="pane" id="recognition-pane"><div class="pane-title"><h3><span class="pane-step">02</span> Erkennung</h3></div>
+                <section class="pane" id="recognition-pane"><div class="pane-title"><h3>Erkennung</h3></div>
                   <div id="raw-fields"></div>
                   <p id="source-note" class="small"></p>
                   <details><summary>Technische Details</summary><p id="raw-summary" class="small"></p><pre id="raw-json" class="raw-json"></pre></details>
                 </section>
-                <section class="pane" id="result-pane"><div class="pane-title"><h3><span class="pane-step">03</span> Ergebnis</h3><span id="result-state" class="result-note" hidden>Vorschau</span></div>
+                <section class="pane" id="result-pane"><div class="pane-title"><h3>Ergebnis</h3><span id="result-state" class="result-note" hidden>Vorschau</span></div>
                   <div id="final-fields"></div>
                   <label id="evidence-wrap" class="check-label" hidden><input type="checkbox" id="evidence-confirmed" />Ich habe die geänderten Antworten oder Texte am Original geprüft und kann sie dort belegen.</label>
                   <p id="review-error" class="error inline-error" role="alert" hidden></p>
