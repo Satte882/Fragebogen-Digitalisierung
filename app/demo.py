@@ -2,9 +2,21 @@
 from __future__ import annotations
 
 import io
+from pathlib import Path
 from PIL import Image, ImageDraw
 
 from .contracts import Recognition
+
+
+EXAMPLE_FORMS = Path(__file__).with_name("example_forms")
+BLANK_FORM = "00-leerer-fragebogen.png"
+HANDWRITING_FORMS = (
+    "01-deutscher-freitext.png",
+    "02-unordentliche-handschrift.png",
+    "03-unklares-kreuz.png",
+    "04-leeres-feld-englisch.png",
+    "05-mehrfachmarkierung-franzoesisch.png",
+)
 
 
 QUESTIONS = (

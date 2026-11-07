@@ -34,6 +34,12 @@ tmp/
 *.heic
 *.raw
 *.png
+!/app/example_forms/00-leerer-fragebogen.png
+!/app/example_forms/01-deutscher-freitext.png
+!/app/example_forms/02-unordentliche-handschrift.png
+!/app/example_forms/03-unklares-kreuz.png
+!/app/example_forms/04-leeres-feld-englisch.png
+!/app/example_forms/05-mehrfachmarkierung-franzoesisch.png
 *.webp
 *.mp4
 *.webm

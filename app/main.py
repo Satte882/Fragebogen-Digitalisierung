@@ -25,7 +25,7 @@ from pydantic import BaseModel, Field
 
 from .config import Settings
 from .contracts import Confirmation, Recognition, suggestion
-from .demo import make_demo_items
+from .demo import BLANK_FORM, EXAMPLE_FORMS, HANDWRITING_FORMS, make_demo_items
 from .export import batch_csv
 from .providers import MockProvider, OpenRouterProvider, PROMPT_VERSION, ProviderError
 from .security import Session, WorkspaceStore, verify_password
@@ -269,7 +269,7 @@ def build_app(settings: Settings | None = None) -> FastAPI:
                         or attempts > settings.provider_retries or error.retry_after > 30):
                     raise error
                 await asyncio.sleep(max(error.retry_after, 0.5 * 2 ** (attempts - 1)))
-            source = "upload" if live else "mock_upload"
+            source = item["source"] if item["source"] == "handwriting_example" else ("upload" if live else "mock_upload")
             item.update(source=source, raw=parsed.model_dump(),
                         raw_text=raw_text, status=parsed.recommended_status,
                         classification=parsed.recommended_status)
@@ -284,11 +284,13 @@ def build_app(settings: Settings | None = None) -> FastAPI:
                 "status": item["status"], "error_code": item["error_code"], "calls": attempts if live else 0,
             })
 
-    def configured_provider(expected_provider: str | None = None):
+    def configured_provider(expected_provider: str | None = None, *, requires_live: bool = False):
         if expected_provider is not None and model_config['provider'] != expected_provider:
             raise HTTPException(409, 'Der Modellmodus wurde geändert. Bitte starte die Verarbeitung erneut.')
         if model_config["provider"] == "openrouter":
             return OpenRouterProvider(settings.openrouter_api_key, model_config["model"]), model_config["model"]
+        if requires_live:
+            raise HTTPException(409, "Handschrift-Beispiele benötigen aktive KI-Erkennung über OpenRouter.")
         return MockProvider(), "mock"
 
     async def process_batch(session: Session, batch: dict, items: list[dict], provider, model: str) -> None:
@@ -499,6 +501,35 @@ def build_app(settings: Settings | None = None) -> FastAPI:
         session.batches[batch["id"]] = batch
         return batch_summary(batch)
 
+    def handwriting_items() -> list[dict]:
+        return [
+            new_item(name, normalize_image((EXAMPLE_FORMS / name).read_bytes(),
+                                           settings.max_upload_mb, settings.image_max_edge,
+                                           settings.image_jpeg_quality),
+                     number, source="handwriting_example")
+            for number, name in enumerate(HANDWRITING_FORMS, 1)
+        ]
+
+    @app.post("/api/examples/handwriting")
+    async def add_handwriting_examples(session: Session = Depends(session_for)):
+        existing_count = sum(len(batch["items"]) for batch in session.batches.values())
+        if existing_count + len(HANDWRITING_FORMS) > settings.max_images_per_session:
+            raise HTTPException(429, "Bildlimit erreicht.")
+        if upload_slot.locked():
+            raise HTTPException(429, "Bilder werden bereits vorbereitet. Bitte gleich erneut versuchen.")
+        async with upload_slot:
+            items = await asyncio.to_thread(handwriting_items)
+            if store.get(session.token) is None:
+                raise HTTPException(401, "Sitzung abgelaufen.")
+            ensure_image_capacity(session, items)
+            batch = new_batch("Handschrift-Beispiele · 5 Testbögen", items)
+            session.batches[batch["id"]] = batch
+        return batch_summary(batch)
+
+    @app.get("/api/examples/blank-form")
+    async def download_blank_form(session: Session = Depends(session_for)):
+        return FileResponse(EXAMPLE_FORMS / BLANK_FORM, media_type="image/png", filename=BLANK_FORM)
+
     @app.get("/api/batches/{batch_id}")
     async def batch_detail(batch_id: str, session: Session = Depends(session_for)):
         return {**batch_summary(get_batch(session, batch_id)), "budget": budget(session)}
@@ -547,7 +578,8 @@ def build_app(settings: Settings | None = None) -> FastAPI:
             raise HTTPException(409, "Synthetische Fixdaten sind keine echte Bilderkennung.")
         if item["status"] not in ("pending", "error") or item["image"] is None:
             raise HTTPException(409, "Dieses Foto kann derzeit nicht erkannt werden.")
-        await process_item(session, item, *configured_provider(expected_provider))
+        await process_item(session, item, *configured_provider(
+            expected_provider, requires_live=item["source"] == "handwriting_example"))
         if item["status"] == "error":
             raise HTTPException(429 if item["error_code"] in ("budget", "rate_limit") else 502, item["error"])
         return item_summary(item)
@@ -563,7 +595,8 @@ def build_app(settings: Settings | None = None) -> FastAPI:
                  if item["status"] == expected and item["image"] is not None]
         if not items:
             raise HTTPException(409, "Keine passenden Bögen zur Verarbeitung.")
-        provider, model = configured_provider(expected_provider)
+        provider, model = configured_provider(
+            expected_provider, requires_live=any(item["source"] == "handwriting_example" for item in items))
         if not batch["synthetic"] and model_config["provider"] == "openrouter" and budget(session)["remaining"] <= 0:
             raise HTTPException(429, "Technisches Modellaufrufbudget erschöpft.")
         for item in items:
@@ -684,9 +717,9 @@ def build_app(settings: Settings | None = None) -> FastAPI:
         batch = get_batch(session, batch_id)
         return {"source": "live", "cases": [
             {"id": item["id"], "filename": item["filename"], "recognition": item["raw"],
-             "classification": item["classification"], "review_mode": item["review_mode"],
+             "classification": item["classification"], "review_mode": item["review_mode"], "final": item["final"],
              "confirmation_source": item["confirmation_source"], "runs": item["runs"]}
-            for item in batch["items"].values() if item["source"] == "upload" and item["runs"]
+            for item in batch["items"].values() if item["source"] in ("upload", "handwriting_example") and item["runs"]
             and any(run["calls"] for run in item["runs"])
         ]}
 

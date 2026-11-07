@@ -238,7 +238,8 @@ input[type=file]::file-selector-button { margin-right: 6px; padding: 5px 7px; bo
 #upload-error { flex-basis: 100%; }
 #global-message:not(:empty) { position: fixed; inset: auto 12px 12px auto; z-index: 120; max-width: min(420px, calc(100% - 24px)); margin: 0; box-shadow: 0 4px 18px #132b3a35; }
 .batch-sidebar { display: flex; flex-direction: column; position: sticky; top: var(--topbar-height); max-height: calc(100dvh - var(--topbar-height)); overflow-y: auto; }
-.batch-sidebar #toggle-upload { margin-bottom: 10px; }
+.batch-sidebar #toggle-upload, .batch-sidebar #handwriting-demo-button, .batch-sidebar #batch-demo-button { margin-bottom: 8px; }
+.batch-sidebar .blank-form-link { color: #d6e5ec; font-size: 12px; padding: 4px 0; }
 .batch-row { display: flex; align-items: start; gap: 3px; }
 .batch-row .batch-entry { min-width: 0; flex: 1; width: auto; }
 .remove-batch { background: transparent; color: #d6e5ec; border: 0; padding: 5px; font-size: 18px; }

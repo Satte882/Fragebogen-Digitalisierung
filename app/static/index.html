@@ -62,10 +62,12 @@
         <aside class="batch-sidebar">
           <p class="eyebrow">ARBEITSBEREICH</p>
           <h2>Vorgänge</h2>
-          <button id="toggle-upload" aria-controls="upload-panel" aria-expanded="false">+ Neuer Vorgang</button>
+          <button id="toggle-upload" aria-controls="upload-panel" aria-expanded="false">Eigene Bilder hochladen</button>
+          <button id="handwriting-demo-button">Handschrift-Beispiele mit KI testen</button>
+          <button id="batch-demo-button" class="secondary">30-Bögen-Demo ohne KI</button>
+          <a class="blank-form-link" href="/api/examples/blank-form">Leeren Fragebogen herunterladen</a>
           <details class="demo-tools"><summary>Demo-Werkzeuge</summary>
             <button id="demo-button" class="secondary">Kurzdemo · 3 Bögen</button>
-            <button id="batch-demo-button" class="secondary">Neue Batch-Demo · 30 Bögen</button>
           </details>
           <div id="batch-list" class="batch-list"><p class="small">Noch keine Vorgänge.</p></div>
           <details id="quality-panel" class="quality-panel"><summary>Qualitätsnachweis</summary><p>Gemma 4 · 3 synthetische Druckbögen</p><dl><div><dt>Feldtreffer</dt><dd>15 / 15</dd></div><div><dt>Falsch grüne Bögen</dt><dd>0 / 2</dd></div></dl><p>Erste Live-Stichprobe. Handschrift und schwierige Fotos bleiben zu prüfen.</p></details>

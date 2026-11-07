@@ -71,3 +71,17 @@ Beispiel für eine **Darstellung**, nicht als behauptetes Ergebnis: „10 verarb
 5. Die Testrolle kann die End-to-End-Funktionen ausführen, technische Einstellungen aber nicht ändern.
 6. Keine gegenseitige Datenlesbarkeit zwischen Test-Sitzungen.
 7. Nach Ablauf eines Arbeitsbereichs kommuniziert die UI verständlich, dass nicht exportierte Ergebnisse verloren sein können.
+
+## Handschrift-Beispiele
+
+Die fünf freigegebenen, fiktiven Testbögen sind in app/example_forms versioniert. Die Originaldateien unter local-data bleiben lokal. Die veröffentlichten PNGs behalten die Bildpixel und enthalten keine übernommenen Dateimetadaten. Die leere Vorlage zählt nicht zum Testset.
+
+Die manuell geprüften Feldzustände stehen in handwriting-ground-truth.json. Die Dateien mit Sollwerten werden ausschließlich zur Auswertung benutzt. Der Modelladapter bekommt nur das normalisierte Bild und den allgemeinen Erkennungsprompt. Der genaue Wortlaut des dritten Bogens wird wegen unsicherer Lesart nicht gewertet. Die Übersetzungs- und Transkriptionsmetriken prüfen exakte Textgleichheit. Zeichensetzung und zulässige Übersetzungsvarianten können deshalb als Abweichungen zählen.
+
+Für einen vollständigen Vergleich alle fünf Bögen im selben Beispieldatensatz verarbeiten, bei Bedarf korrigieren und bestätigen. Die private JSON-Auswertung der aktiven Sitzung steht unter /api/batches/{batch_id}/evaluation und enthält unveränderte Erkennung und den aktuell bestätigten Datensatz. Nach dem Speichern der Antwort in local-data/handwriting-evaluation.json lässt sich der Vergleich lokal ausführen:
+
+```powershell
+.\.venv\Scripts\python.exe -m scripts.evaluate_quality docs/handwriting-ground-truth.json local-data/handwriting-evaluation.json
+```
+
+Die Auswertung verknüpft über den stabilen Beispiel-Dateinamen. Sitzungs- und Bild-IDs bleiben für jeden Vorgang individuell. Die Ergebnis-CSV enthält weiterhin nur die bestätigten Werte und ihre bestehenden Zuordnungsfelder.

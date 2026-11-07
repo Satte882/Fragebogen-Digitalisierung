@@ -29,7 +29,7 @@ python -m uvicorn app.main:app --reload
 
 Im Browser **http://127.0.0.1:8000** öffnen. `bootstrap_local.py` erzeugt ein privates `.env` und zeigt einmalig zwei zufällige Passwörter für die Konten **admin** und **test**. Die Datei `.env` niemals in Git einchecken. Sollte PowerShell die Aktivierung verweigern, die Befehle mit `.\.venv\Scripts\python.exe` ausführen. Python 3.12+ erforderlich.
 
-Unter **„Demo-Werkzeuge“ → „Neue Batch-Demo · 30 Bögen“** erscheint sofort ein Testvorgang mit 26 übernahmebereiten und vier zu prüfenden Bögen. Der Ablauf über Einzelprüfung, Sammelbestätigung und CSV benötigt dabei keine Anbieteraufrufe. Reguläre Uploads werden über **„Bögen erfassen“** verarbeitet. Eigene Foto-Uploads erhalten im Mock-Modus ausdrücklich **keine Schein-Erkennung**.
+Unter **„30-Bögen-Demo ohne KI“** erscheint sofort ein Testvorgang mit 26 übernahmebereiten und vier zu prüfenden Bögen. Der Ablauf über Einzelprüfung, Sammelbestätigung und CSV benötigt dabei keine Anbieteraufrufe. **„Handschrift-Beispiele mit KI testen“** lädt fünf fiktive Testbögen in einen eigenen Vorgang. **„Leeren Fragebogen herunterladen“** stellt die unbeschriebene Vorlage bereit. Die echten Modellaufrufe beginnen erst über **„KI-Erkennung starten“**. Eigene Foto-Uploads erhalten im Mock-Modus ausdrücklich **keine Schein-Erkennung**.
 
 ### Mit Gemini über OpenRouter
 

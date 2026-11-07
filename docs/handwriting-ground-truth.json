@@ -1,0 +1,149 @@
+{
+  "schema_version": 1,
+  "id_kind": "filename",
+  "cases": [
+    {
+      "id": "01-deutscher-freitext.png",
+      "requires_review": false,
+      "answers": {
+        "q1": {
+          "value": 1,
+          "status": "answered"
+        },
+        "q2": {
+          "value": 2,
+          "status": "answered"
+        },
+        "q3": {
+          "value": 3,
+          "status": "answered"
+        },
+        "q4": {
+          "value": 4,
+          "status": "answered"
+        },
+        "q5": {
+          "value": 4,
+          "status": "answered"
+        }
+      },
+      "original_transcript": "geht so mit der zeit",
+      "german_translation": "geht so mit der zeit",
+      "text_status": "translated"
+    },
+    {
+      "id": "02-unordentliche-handschrift.png",
+      "requires_review": true,
+      "answers": {
+        "q1": {
+          "value": 1,
+          "status": "answered"
+        },
+        "q2": {
+          "value": 1,
+          "status": "answered"
+        },
+        "q3": {
+          "value": 2,
+          "status": "answered"
+        },
+        "q4": {
+          "value": 2,
+          "status": "answered"
+        },
+        "q5": {
+          "value": 1,
+          "status": "answered"
+        }
+      },
+      "original_transcript": "zu lange gedauert",
+      "german_translation": "zu lange gedauert",
+      "text_status": "translated"
+    },
+    {
+      "id": "03-unklares-kreuz.png",
+      "requires_review": true,
+      "answers": {
+        "q1": {
+          "value": null,
+          "status": "unreadable"
+        },
+        "q2": {
+          "value": 2,
+          "status": "answered"
+        },
+        "q3": {
+          "value": 1,
+          "status": "answered"
+        },
+        "q4": {
+          "value": 1,
+          "status": "answered"
+        },
+        "q5": {
+          "value": 2,
+          "status": "answered"
+        }
+      },
+      "notes": "Die Markierung bei Frage 1 liegt zwischen 1 und 2. Der Freitext wird wegen unsicherer Lesart nicht wortgetreu bewertet."
+    },
+    {
+      "id": "04-leeres-feld-englisch.png",
+      "requires_review": true,
+      "answers": {
+        "q1": {
+          "value": 2,
+          "status": "answered"
+        },
+        "q2": {
+          "value": 2,
+          "status": "answered"
+        },
+        "q3": {
+          "value": null,
+          "status": "no_answer"
+        },
+        "q4": {
+          "value": 1,
+          "status": "answered"
+        },
+        "q5": {
+          "value": 2,
+          "status": "answered"
+        }
+      },
+      "original_transcript": "good job,\nbad weather",
+      "german_translation": "Gute Arbeit, schlechtes Wetter.",
+      "text_status": "translated"
+    },
+    {
+      "id": "05-mehrfachmarkierung-franzoesisch.png",
+      "requires_review": true,
+      "answers": {
+        "q1": {
+          "value": 3,
+          "status": "answered"
+        },
+        "q2": {
+          "value": 2,
+          "status": "answered"
+        },
+        "q3": {
+          "value": null,
+          "status": "multiple"
+        },
+        "q4": {
+          "value": 2,
+          "status": "answered"
+        },
+        "q5": {
+          "value": 1,
+          "status": "answered"
+        }
+      },
+      "original_transcript": "c’est la vie",
+      "german_translation": "So ist das Leben.",
+      "text_status": "translated"
+    }
+  ]
+}

@@ -245,7 +245,8 @@ async function openBatch(batchId, preferredItem = null, savedReview = null) {
   state.batchId = batch.id;
   $('empty-state').hidden = true; $('batch-view').hidden = false;
   $('selected-batch-name').value = $('batch-title').textContent = batch.name;
-  $('batch-kicker').textContent = batch.synthetic ? 'DEMONSTRATION · SYNTHETISCHE BÖGEN' : 'DIGITALISIERUNG · VORGANG';
+  $('batch-kicker').textContent = batch.synthetic ? 'DEMONSTRATION · SYNTHETISCHE BÖGEN'
+    : batch.items[0]?.source === 'handwriting_example' ? 'TESTDATEN · HANDSCHRIFT MIT KI' : 'DIGITALISIERUNG · VORGANG';
   renderBatchStatus(batch);
   renderBatchList();
   const target = batch.items.find(x => x.id === preferredItem);
@@ -306,14 +307,15 @@ function renderBatchStatus(batch) {
     return metric;
   }));
   const active = Boolean(batch.run?.active);
+  const liveRequired = batch.items[0]?.source === 'handwriting_example' && state.provider !== 'openrouter';
   const ready = counts[1][1];
   const pending = batch.items.some(x => x.status === 'pending' && x.can_recognize);
   $('recognize-all-button').hidden = !pending && !active;
-  $('recognize-all-button').disabled = active || state.busy;
+  $('recognize-all-button').disabled = active || state.busy || liveRequired;
   $('recognize-all-button').textContent = active ? 'Verarbeitung läuft …'
     : state.provider === 'openrouter' ? 'KI-Erkennung starten' : 'Demo-Verarbeitung starten';
   $('retry-button').hidden = !batch.items.some(x => x.status === 'error' && x.can_recognize);
-  $('retry-button').disabled = active || state.busy;
+  $('retry-button').disabled = active || state.busy || liveRequired;
   const open = counts[2][1];
   $('bulk-step').hidden = ready === 0;
   $('bulk-step').classList.toggle('recommended', !active && !pending && !open && !counts[4][1]);
@@ -346,6 +348,8 @@ function renderBatchStatus(batch) {
   const individual = batch.items.filter(x => ['individual','sample'].includes(x.confirmation_source)).length;
   $('batch-overview').textContent = active ? 'Die Übersicht aktualisiert sich während der Verarbeitung.'
     : open ? `${open} ${open === 1 ? 'Bogen braucht' : 'Bögen brauchen'} eine manuelle Prüfung. Wähle einen Bogen aus der Warteschlange.`
+    : pending && liveRequired ? 'Die Testbögen sind geladen. Ein Administrator muss die KI-Erkennung aktivieren.'
+    : pending && batch.items[0]?.source === 'handwriting_example' ? 'Fünf handschriftliche Testbögen bereit. Die KI wird erst beim Start aufgerufen.'
     : pending ? 'Die hochgeladenen Bögen sind bereit. Starte die Verarbeitung oben im Vorgang.'
     : counts[4][1] ? `${counts[4][1]} technische Fehler. Details stehen in der Warteschlange.`
     : `${individual} einzeln geprüft · ${ready} zur Sammelbestätigung bereit.`;
@@ -779,11 +783,13 @@ function renderDetail() {
     ? 'Vorgegebene Demodaten für den Prüfablauf.'
     : item.source === 'mock_upload' ? 'Demo-Adapter ohne automatische Erkennung.'
     : item.raw ? 'Echte KI-Erkennung über OpenRouter. Bitte am Originalfoto prüfen.'
+    : item.source === 'handwriting_example' ? 'Handschriftlicher Testbogen. Noch kein Erkennungsergebnis vorhanden.'
     : 'Hochgeladenes Original. Noch kein Erkennungsergebnis vorhanden.';
   $('raw-summary').textContent = item.source === 'synthetic_demo' ? 'Vorgegebene Demodaten (JSON)' : 'Unveränderte Modellantwort (JSON)';
   $('raw-json').textContent = item.raw_text || '(noch keine KI-Ausgabe)';
   $('recognize-one-button').textContent = state.provider === 'openrouter' ? 'KI-Erkennung für dieses Bild starten' : 'Dieses Bild im Demo-Modus verarbeiten';
-  $('recognize-one-button').disabled = state.busy || !item.can_recognize;
+  $('recognize-one-button').disabled = state.busy || !item.can_recognize ||
+    (item.source === 'handwriting_example' && state.provider !== 'openrouter');
   $('recognize-one-button').hidden = !item.can_recognize;
   renderFindings(item); renderRaw(item); renderFinal(item);
   if (state.editing && $('final-q1')) {
@@ -979,22 +985,24 @@ $('upload-button').addEventListener('click', async () => {
   } catch (e) { inlineError('upload-error', e.message); }
 });
 $('empty-demo').addEventListener('click', () => $('demo-button').click());
-async function loadDemo(fullBatch) {
+async function loadDemo(endpoint, message = 'Neuer Testvorgang geöffnet.') {
   if (creatingDemo) return;
   creatingDemo = true;
-  for (const id of ['demo-button','batch-demo-button','empty-demo']) $(id).disabled = true;
+  for (const id of ['demo-button','batch-demo-button','handwriting-demo-button','empty-demo']) $(id).disabled = true;
   try {
-    const batch = await json(`/api/demo?full_batch=${fullBatch}`, {method:'POST'});
+    const batch = await json(endpoint, {method:'POST'});
     await reloadBatches(batch.id);
     document.querySelector('.demo-tools').open = false;
-    setMessage('Neuer Testvorgang geöffnet.');
+    setMessage(message);
   } catch (e) { errMessage(e); } finally {
     creatingDemo = false;
-    for (const id of ['demo-button','batch-demo-button','empty-demo']) $(id).disabled = false;
+    for (const id of ['demo-button','batch-demo-button','handwriting-demo-button','empty-demo']) $(id).disabled = false;
   }
 }
-$('demo-button').addEventListener('click', () => loadDemo(false));
-$('batch-demo-button').addEventListener('click', () => loadDemo(true));
+$('demo-button').addEventListener('click', () => loadDemo('/api/demo'));
+$('batch-demo-button').addEventListener('click', () => loadDemo('/api/demo?full_batch=true'));
+$('handwriting-demo-button').addEventListener('click', () => loadDemo('/api/examples/handwriting',
+  'Fünf Testbögen geladen. Starte die KI-Erkennung, wenn du bereit bist.'));
 function setBatchInfo(open) {
   $('batch-info').hidden = !open;
   $('batch-info-button').setAttribute('aria-expanded', String(open));

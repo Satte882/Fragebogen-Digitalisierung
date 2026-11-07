@@ -40,6 +40,7 @@ Einfaches Login mit Administrator- und Testrolle. Keine öffentliche Datenverarb
 
 - Auswahl **eines lokalen Fotoordners** oder alternativ mehrerer Einzelbilder im Browser; der Ordnername ist ausschließlich ein Vorschlag.
 - Unterstützte MVP-Eingaben: **JPEG und PNG**. Andere Formate erst nach Bedarf, keine automatische PDF-Erstellung.
+- Fünf versionierte Handschrift-Beispiele werden als offene Bilder in den eigenen Vorgang geladen. Erst die ausdrücklich gestartete Erkennung übermittelt sie ans Modell. Die leere Vorlage ist separat nach Login herunterladbar. Die vorbereitete 30-Bögen-Demo bleibt ohne Modellaufrufe verfügbar.
 - Die Demo ist für Desktop-PCs ausgelegt. Maßgeblich für die UI-Abnahme sind 1366 × 768 Pixel und größere Desktop-Fenster. Breite Arbeitsflächen sollen ausgenutzt werden. Handy und Tablet gehören nicht zur UI-Abnahme.
 - Vorgangsname ist vor und nach dem Import editierbar (Beispiel: „Veranstaltung Nord – 02.05.2026“). Ein Hinweis erklärt die Übernahme in die CSV. Die Oberfläche bildet die Bogenbezeichnung aus dem aktuellen Vorgangsnamen und der laufenden Nummer (z. B. „Veranstaltung Nord – 02.05.2026 · Bogen 001“). Beim Umbenennen bleiben Vorgangs-ID, Bild-ID, Nummer und ursprünglicher Dateiname erhalten.
 - System vergibt eindeutige Vorgangs-ID und je Bild eine stabile Bild-ID; dazu Dateiname und Reihenfolge.
