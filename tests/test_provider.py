@@ -37,6 +37,7 @@ def test_openrouter_multimodal_payload_and_result(monkeypatch):
     payload=json.loads(request.content)
     assert payload['model']=='google/gemini-test'
     assert payload['response_format']=={'type':'json_object'}
+    assert payload['provider']=={'require_parameters': True}
     parts=payload['messages'][0]['content']
     assert parts[0]['type']=='text' and 'TRAN' in parts[0]['text'].upper()
     assert parts[1]['image_url']['url'].startswith('data:image/jpeg;base64,')

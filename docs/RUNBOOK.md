@@ -55,17 +55,17 @@ Die Modell-ID ist ein **Beispiel**; aktuell verfügbares bildfähiges Modell unt
 | `ADMIN_PASSWORD_HASH`, `TEST_PASSWORD_HASH` | Erforderlich. Jeweils den separat erzeugten scrypt-Hash im Dashboard eingeben. |
 | `SESSION_SECRET` | Erforderlich. Blueprint erzeugt einen zufälligen Wert. Bei manueller Einrichtung einen eigenen zufälligen Wert mit mindestens 32 Zeichen setzen. |
 | `PYTHON_VERSION`, `APP_ENV`, `PORT` | `3.12.10`, `production`, Port von Render. Der Server bindet an `0.0.0.0`, mit einem Worker und höchstens 24 gleichzeitigen Verbindungen bzw. Tasks. `/health` bleibt öffentlich und liefert nur den Gesundheitsstatus. |
-| `MODEL_PROVIDER`, `ALLOW_LIVE_MODEL` | `mock`, `false`. Für die erste Demo werden weder Modell-ID noch API-Schlüssel benötigt. |
+| `MODEL_PROVIDER`, `ALLOW_LIVE_MODEL` | `openrouter`, `true` für echte Erkennung. Für einen Betrieb ohne Modellzugang `mock`, `false` setzen. |
 | `MAX_IMAGES_PER_SESSION`, `MAX_SESSIONS` | `40` Bilder je Sitzung, `4` aktive Sitzungen pro Prozess einschließlich Admin. |
 | `MAX_UPLOAD_MB`, `MAX_BATCH_UPLOAD_MB`, `MAX_WORKSPACE_MB` | `5` MiB pro Datei, `120` MiB pro Upload plus Formular-Overhead, `48` MiB gespeicherte Bilder und Vorschauen pro Sitzung. Maximal ein Upload gleichzeitig. |
 | `IMAGE_MAX_EDGE`, `IMAGE_JPEG_QUALITY` | `1800` Pixel, `86`. Eingaben bis 20 Megapixel. |
 | `SESSION_TTL_MINUTES` | `120`. Der Timer verlängert sich nicht automatisch. |
-| `BATCH_PARALLELISM`, `PROVIDER_RETRIES` | `1` paralleler Modellaufruf, höchstens `1` Wiederholung bei vorübergehenden Fehlern. |
-| `LIVE_CALLS_PER_SESSION`, `LIVE_CALLS_GLOBAL` | `40` Modellaufrufe pro Sitzung und `80` pro Prozess, einschließlich Wiederholungen und Fehlern. |
+| `BATCH_PARALLELISM`, `PROVIDER_RETRIES` | `1` paralleler Modellaufruf, `0` automatische Wiederholungen. |
+| `LIVE_CALLS_PER_SESSION`, `LIVE_CALLS_GLOBAL` | `40` Modellaufrufe pro Sitzung und `60` pro Prozess, einschließlich Wiederholungen und Fehlern. |
 
 ### Spätere Freigabe von OpenRouter
 
-Erst nach separater Freigabe für externe Bildübermittlung und mögliche Modellkosten im Render-Dashboard `OPENROUTER_API_KEY` als Geheimnis, `OPENROUTER_MODEL` als geprüfte bildfähige Modell-ID und `ALLOW_LIVE_MODEL=true` setzen. Für einen Live-Start `MODEL_PROVIDER=openrouter` setzen. Alternativ kann ein Administrator bei vorhandenem Schlüssel und aktivierter Freigabe zur Laufzeit von Mock auf OpenRouter wechseln. Eine erneute Blueprint-Anwendung kann die dort festgelegte Mock-Konfiguration wiederherstellen.
+Für Live-Erkennung `OPENROUTER_API_KEY` im Render-Dashboard als Geheimnis setzen. Der Blueprint setzt `OPENROUTER_MODEL=google/gemma-4-26b-a4b-it`, `MODEL_PROVIDER=openrouter` und `ALLOW_LIVE_MODEL=true`. Vorbereitete Demo-Bögen bleiben verfügbar und verbrauchen kein Modellbudget. Der Free-Dienst verwendet einen parallelen Aufruf, null automatische Wiederholungen, höchstens 40 Aufrufe je Sitzung und 60 je Prozess. Ein Ausgabenlimit am OpenRouter-Schlüssel gilt auch nach Render-Neustarts.
 
 Für diese Demo einen separaten OpenRouter-Key mit einem kleinen Anbieterbudget einsetzen. Die Anwendungslimits zählen Aufrufe. Sie messen keine Kosten und werden bei Prozessneustart zurückgesetzt. Vor Einladungen einen einzelnen eigenen synthetischen Bogen prüfen und im Anbieter-Dashboard Modell, Abrechnung und Limits kontrollieren. [OpenRouter-Limits](https://openrouter.ai/docs/api/reference/limits)
 

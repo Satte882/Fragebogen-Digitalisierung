@@ -13,7 +13,7 @@ from pydantic import ValidationError
 from .contracts import Recognition
 
 
-PROMPT_VERSION = "fixed-5x4-v2"
+PROMPT_VERSION = "fixed-5x4-v3"
 
 PROMPT = """You are a STRICT DOCUMENT TRANSCRIBER, not a survey analyst.
 The image contains a fixed five-question form. Each question offers FOUR boxes, labeled 1, 2, 3, 4.
@@ -22,6 +22,7 @@ For each q1..q5:
  - status no_answer + null if there is clearly no mark.
  - status multiple + null if conflicting/multiple boxes are marked.
  - status unreadable + null if uncertain, obscured, ambiguous or illegible.
+A clearly centered mark counts even if its strokes touch or extend beyond the box. A mark between boxes without a clear center is unreadable. Inspect each row independently, including faint marks and edge strokes.
 NEVER infer an answer from the question text or from other answers.
 Transcribe handwritten free text exactly in its original language (do not correct or polish).
 Translate only the recognized text into German faithfully; preserve tone and meaning, no analysis or smoothing.
@@ -114,6 +115,7 @@ class OpenRouterProvider:
             "temperature": 0,
             "max_tokens": 4096,
             "response_format": {"type": "json_object"},
+            "provider": {"require_parameters": True},
         }
         try:
             async with httpx.AsyncClient(timeout=httpx.Timeout(60.0, connect=10.0)) as client:

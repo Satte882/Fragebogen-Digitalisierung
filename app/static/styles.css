@@ -160,6 +160,7 @@ button:disabled { opacity: .58; }
 .photo-entry.selected { background: #e8f6f1; border-color: var(--teal); outline: 1px solid var(--teal); }
 .thumbnail { width: 39px; height: 55px; flex: 0 0 39px; background: #f0f4f5; border: 1px solid #d6e1e5; }
 .photo-info { display: grid; justify-items: start; gap: 2px; min-width: 0; }
+.photo-filename { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .photo-info .status { max-width: 100%; overflow-wrap: anywhere; font-size: 10px; padding: 2px 5px; }
 .photo-info { flex: 1; }
 .photo-reason { font-size: 11px; line-height: 1.25; }

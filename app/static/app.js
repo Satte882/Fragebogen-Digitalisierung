@@ -310,6 +310,8 @@ function renderBatchStatus(batch) {
   const pending = batch.items.some(x => x.status === 'pending' && x.can_recognize);
   $('recognize-all-button').hidden = !pending && !active;
   $('recognize-all-button').disabled = active || state.busy;
+  $('recognize-all-button').textContent = active ? 'Verarbeitung läuft …'
+    : state.provider === 'openrouter' ? 'KI-Erkennung starten' : 'Demo-Verarbeitung starten';
   $('retry-button').hidden = !batch.items.some(x => x.status === 'error' && x.can_recognize);
   $('retry-button').disabled = active || state.busy;
   const open = counts[2][1];
@@ -344,7 +346,7 @@ function renderBatchStatus(batch) {
   const individual = batch.items.filter(x => ['individual','sample'].includes(x.confirmation_source)).length;
   $('batch-overview').textContent = active ? 'Die Übersicht aktualisiert sich während der Verarbeitung.'
     : open ? `${open} ${open === 1 ? 'Bogen braucht' : 'Bögen brauchen'} eine manuelle Prüfung. Wähle einen Bogen aus der Warteschlange.`
-    : pending ? 'Die Bögen sind bereit zur technischen Verarbeitung.'
+    : pending ? 'Die hochgeladenen Bögen sind bereit. Starte die Verarbeitung oben im Vorgang.'
     : counts[4][1] ? `${counts[4][1]} technische Fehler. Details stehen in der Warteschlange.`
     : `${individual} einzeln geprüft · ${ready} zur Sammelbestätigung bereit.`;
   $('batch-progress').hidden = !active;
@@ -352,7 +354,7 @@ function renderBatchStatus(batch) {
     $('run-progress').max = batch.run.total;
     $('run-progress').value = batch.run.done;
     $('run-label').textContent = `${batch.run.done} von ${batch.run.total} verarbeitet`;
-    $('run-breakdown').textContent = 'Technischer Lauf';
+    $('run-breakdown').textContent = `${batch.run.successful} verarbeitet · ${batch.run.review_required} zur Prüfung · ${batch.run.failed} Fehler`;
   }
   $('batch-budget').hidden = !batch.budget || state.provider === 'mock';
   if (batch.budget) {
@@ -421,10 +423,14 @@ async function refreshRun(batchId) {
     const previous = currentBatch.items.find(x => x.id === state.itemId)?.status;
     const batch = await json(`/api/batches/${batchId}/process`);
     if (state.batchId !== batchId) return;
-    if (currentBatch.run?.active && !batch.run?.active) queueFilter = defaultFilter(batch);
+    const finished = currentBatch.run?.active && !batch.run?.active;
+    if (finished) queueFilter = defaultFilter(batch);
     renderBatchStatus(batch);
     const status = batch.items.find(x => x.id === state.itemId)?.status;
     if (status !== previous && !state.editing) await openItem(state.itemId);
+    else if (finished && batch.count === 1 && !state.itemId && batch.run.successful) {
+      await openForReview(batch.items[0].id);
+    }
   } catch (e) {
     errMessage(e);
     if (state.batchId === batchId) pollTimer = setTimeout(() => refreshRun(batchId), 1600);
@@ -465,6 +471,7 @@ function renderPhotos(batch) {
     }
     const info = element('span', null, 'photo-info');
     info.append(element('strong', sheetNumber(item.sequence)));
+    if (!batch.synthetic) info.append(element('span', item.filename, 'small photo-filename'));
     info.append(element('span', LABELS[item.status] || item.status, `status ${item.status}`));
     card.title = item.filename;
     card.append(info);
@@ -771,9 +778,11 @@ function renderDetail() {
   $('source-note').textContent = item.source === 'synthetic_demo'
     ? 'Vorgegebene Demodaten für den Prüfablauf.'
     : item.source === 'mock_upload' ? 'Demo-Adapter ohne automatische Erkennung.'
-    : 'Ausgabe des multimodalen Modells. Aussagen müssen am Originalfoto geprüft werden.';
+    : item.raw ? 'Echte KI-Erkennung über OpenRouter. Bitte am Originalfoto prüfen.'
+    : 'Hochgeladenes Original. Noch kein Erkennungsergebnis vorhanden.';
   $('raw-summary').textContent = item.source === 'synthetic_demo' ? 'Vorgegebene Demodaten (JSON)' : 'Unveränderte Modellantwort (JSON)';
   $('raw-json').textContent = item.raw_text || '(noch keine KI-Ausgabe)';
+  $('recognize-one-button').textContent = state.provider === 'openrouter' ? 'KI-Erkennung für dieses Bild starten' : 'Dieses Bild im Demo-Modus verarbeiten';
   $('recognize-one-button').disabled = state.busy || !item.can_recognize;
   $('recognize-one-button').hidden = !item.can_recognize;
   renderFindings(item); renderRaw(item); renderFinal(item);
@@ -1061,10 +1070,17 @@ async function startRun(retry) {
   try {
     const provider = await providerForRun(batchId);
     if (!provider) return;
-    await json(`/api/batches/${batchId}/process?retry_failed=${retry}&expected_provider=${provider}`, {method:'POST'});
+    const batch = await json(`/api/batches/${batchId}/process?retry_failed=${retry}&expected_provider=${provider}`, {method:'POST'});
+    if (state.batchId !== batchId) return;
+    closeDetail();
+    state.busy = false;
+    renderBatchStatus(batch);
   } catch (e) { errMessage(e); } finally {
     state.busy = false;
-    if (state.batchId === batchId) await openBatch(batchId).catch(errMessage);
+    if (state.batchId === batchId && !currentBatch.run?.active) {
+      renderBatchStatus(currentBatch);
+      if (state.item) $('recognize-one-button').disabled = !state.item.can_recognize;
+    }
   }
 }
 $('recognize-all-button').addEventListener('click', () => startRun(false));

@@ -13,9 +13,13 @@ services:
       - key: APP_ENV
         value: production
       - key: MODEL_PROVIDER
-        value: mock
+        value: openrouter
       - key: ALLOW_LIVE_MODEL
-        value: "false"
+        value: "true"
+      - key: OPENROUTER_MODEL
+        value: google/gemma-4-26b-a4b-it
+      - key: OPENROUTER_API_KEY
+        sync: false
       - key: ADMIN_PASSWORD_HASH
         sync: false
       - key: TEST_PASSWORD_HASH
@@ -39,10 +43,10 @@ services:
       - key: BATCH_PARALLELISM
         value: "1"
       - key: PROVIDER_RETRIES
-        value: "1"
+        value: "0"
       - key: LIVE_CALLS_PER_SESSION
         value: "40"
       - key: LIVE_CALLS_GLOBAL
-        value: "80"
+        value: "60"
       - key: SESSION_TTL_MINUTES
         value: "120"
