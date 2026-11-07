@@ -25,6 +25,8 @@ label { display: block; font-weight: 600; }
 .error { color: #a91930; font-weight: 600; }
 .topbar { padding: 12px 24px; border-bottom: 1px solid #dbe4e9; background: #fff; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
 .topbar h1 { font-size: 22px; margin: 2px 0 3px; }
+.brand-title { display: flex; align-items: center; gap: 9px; }
+.brand-title img { flex: none; }
 .topbar .small { margin: 0; }
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid #14766d; outline-offset: 2px; }
 .top-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
