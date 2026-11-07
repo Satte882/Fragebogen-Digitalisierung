@@ -103,6 +103,17 @@ for (const panel of ['upload', 'admin']) {
     if (open) $(panel === 'admin' ? 'provider-select' : 'folder-input').focus();
   });
 }
+function closeAdminPanel() {
+  setPanel('admin', false);
+  $('user-menu').open = true;
+  $('toggle-admin').focus();
+}
+$('close-admin').addEventListener('click', closeAdminPanel);
+$('admin-panel').addEventListener('keydown', event => {
+  if (event.key !== 'Escape' || event.defaultPrevented) return;
+  event.preventDefault();
+  closeAdminPanel();
+});
 function updateClock() {
   const minutes = Math.max(0, Math.ceil((sessionDeadline - Date.now()) / 60000));
   $('session-clock').textContent = minutes ? `Sitzung · ${minutes} min` : 'Sitzung abgelaufen';
@@ -782,7 +793,7 @@ $('source-image').addEventListener('load', event => {
 });
 $('source-image').addEventListener('click', toggleZoom);
 document.addEventListener('keydown', event => {
-  if (event.key === 'Escape') setZoom(false);
+  if (event.key === 'Escape' && !event.defaultPrevented) setZoom(false);
 });
 $('edit-button').addEventListener('click', async () => {
   if (!state.item?.raw || state.item.status === 'confirmed') return;
