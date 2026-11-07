@@ -228,6 +228,10 @@ input[type=file]::file-selector-button { margin-right: 6px; padding: 5px 7px; bo
 .overview-note { margin: 6px 0; color: var(--muted); }
 #batch-title-row, #rename-form { display: flex; align-items: center; gap: 7px; }
 #rename-button { font-size: 21px; text-decoration: none; line-height: 1; min-width: 30px; }
+#batch-info-button { flex: 0 0 36px; min-height: 36px; padding: 0; border-radius: 50%; color: #155b55; }
+#batch-name-hint { margin: 2px 0 0; }
+#batch-info { max-width: 55ch; margin: 7px 0 0; padding: 8px 11px; background: #e8f2f6; border-radius: 7px; }
+#review-sheet-name { margin: -3px 0 8px; overflow-wrap: anywhere; }
 #rename-form input { width: min(100%, 350px); }
 #rename-error, .inline-error { margin: 5px 0; }
 #upload-error { flex-basis: 100%; }

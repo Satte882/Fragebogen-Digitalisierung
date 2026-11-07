@@ -74,6 +74,7 @@ function showLogin() {
   $('source-image').removeAttribute('src');
   $('user-menu').open = false;
   setRename(false);
+  setBatchInfo(false);
   setPanel('upload', false);
   setPanel('admin', false);
   $('batch-view').hidden = $('detail-panel').hidden = true;
@@ -239,11 +240,11 @@ async function openBatch(batchId, preferredItem = null, savedReview = null) {
   $('correction-details').open = false;
   $('correction-list').replaceChildren();
   setRename(false);
+  if (state.batchId !== batch.id) setBatchInfo(false);
   if (state.batchId !== batch.id || !preferredItem) queueFilter = defaultFilter(batch);
   state.batchId = batch.id;
   $('empty-state').hidden = true; $('batch-view').hidden = false;
   $('selected-batch-name').value = $('batch-title').textContent = batch.name;
-  if (batch.synthetic && batch.name === 'Synthetische Demo – keine KI-Verarbeitung') $('batch-title').textContent = 'Fragebogen-Demo';
   $('batch-kicker').textContent = batch.synthetic ? 'DEMONSTRATION · SYNTHETISCHE BÖGEN' : 'DIGITALISIERUNG · VORGANG';
   renderBatchStatus(batch);
   renderBatchList();
@@ -463,7 +464,7 @@ function renderPhotos(batch) {
       card.append(image);
     }
     const info = element('span', null, 'photo-info');
-    info.append(element('strong', `Bild ${String(item.sequence).padStart(2, '0')}`));
+    info.append(element('strong', sheetNumber(item.sequence)));
     info.append(element('span', LABELS[item.status] || item.status, `status ${item.status}`));
     card.title = item.filename;
     card.append(info);
@@ -729,6 +730,12 @@ function renderFinal(item) {
   parent.append(field);
   if (confirmed) parent.append(element('p', confirmationLabel(item), 'status confirmed'));
 }
+function sheetNumber(sequence) {
+  return `Bogen ${String(sequence).padStart(3, '0')}`;
+}
+function updateSheetName() {
+  if (state.item) $('review-sheet-name').textContent = `${currentBatch.name} · ${sheetNumber(state.item.sequence)}`;
+}
 function updateReviewProgress() {
   const item = state.item;
   if (!item || !currentBatch) return;
@@ -748,6 +755,7 @@ function renderDetail() {
   $('item-indicator').hidden = state.editing;
   $('item-indicator').textContent = LABELS[item.status] || item.status;
   $('item-indicator').className = `status ${item.status}`;
+  updateSheetName();
   updateReviewProgress();
   const image = $('source-image');
   if (item.image_url) {
@@ -978,11 +986,22 @@ async function loadDemo(fullBatch) {
 }
 $('demo-button').addEventListener('click', () => loadDemo(false));
 $('batch-demo-button').addEventListener('click', () => loadDemo(true));
+function setBatchInfo(open) {
+  $('batch-info').hidden = !open;
+  $('batch-info-button').setAttribute('aria-expanded', String(open));
+}
+$('batch-info-button').addEventListener('click', () => setBatchInfo($('batch-info').hidden));
+$('batch-info-button').addEventListener('keydown', event => {
+  if (event.key !== 'Escape' || $('batch-info').hidden) return;
+  event.preventDefault();
+  setBatchInfo(false);
+});
 function setRename(open, restoreFocus = false) {
   $('batch-title-row').hidden = open;
   $('rename-form').hidden = !open;
   inlineError('rename-error');
   if (open) {
+    setBatchInfo(false);
     $('selected-batch-name').value = currentBatch.name;
     $('selected-batch-name').focus();
     $('selected-batch-name').select();
@@ -1001,6 +1020,7 @@ $('rename-form').addEventListener('submit', async event => {
     if (state.batchId !== batchId) return;
     currentBatch.name = updated.name;
     $('batch-title').textContent = updated.name;
+    updateSheetName();
     state.batches.find(batch => batch.id === batchId).name = updated.name;
     renderBatchList();
     setRename(false, true);

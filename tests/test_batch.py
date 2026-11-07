@@ -155,6 +155,41 @@ def test_ready_demo_review_four_then_confirm_26_and_export(client):
     assert "original_transcript" not in csv_text and "corrections" not in csv_text
 
 
+def test_renaming_demo_batch_preserves_form_identity_in_csv(client):
+    from app.export import COLUMNS
+
+    headers = login(client)
+    before = client.post("/api/demo?full_batch=true", headers=headers).json()
+    url = f"/api/batches/{before['id']}"
+    name = "Feedback Antalya – 02.05.2026"
+    renamed = client.patch(url, headers=headers, json={"name": name})
+    assert renamed.status_code == 200
+    after = client.get(url).json()
+
+    def identity(item):
+        return item["id"], item["sequence"], item["filename"]
+
+    assert (after["id"], after["name"]) == (before["id"], name)
+    assert [identity(item) for item in after["items"]] == [identity(item) for item in before["items"]]
+    assert [item["sequence"] for item in after["items"]] == list(range(1, 31))
+    assert len({item["id"] for item in after["items"]}) == 30
+
+    assert client.post(url + "/confirm-ready", headers=headers).json()["accepted"] == 26
+    for item in after["items"][-4:]:
+        route = f"{url}/items/{item['id']}"
+        raw = client.get(route).json()["raw"]
+        assert client.post(route + "/confirm", headers=headers, json=q_payload(raw)).status_code == 200
+
+    exported = client.get(url + "/export.csv")
+    reader = csv.DictReader(io.StringIO(exported.content.decode("utf-8-sig")), delimiter=";")
+    assert reader.fieldnames == COLUMNS
+    rows = list(reader)
+    assert {(row["batch_id"], row["batch_name"]) for row in rows} == {(before["id"], name)}
+    assert [(row["image_id"], int(row["image_number"]), row["filename"]) for row in rows] == [
+        identity(item) for item in before["items"]
+    ]
+
+
 def test_demo_image_30_keeps_visible_multiple_marks(client):
     headers = login(client)
     batch = client.post("/api/demo?full_batch=true", headers=headers).json()

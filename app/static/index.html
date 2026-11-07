@@ -73,7 +73,7 @@
             <summary><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20v-2a7 7 0 0 1 14 0v2"/></svg><span id="role-indicator"></span></summary>
             <div class="user-menu-actions">
               <button id="toggle-admin" class="secondary" aria-controls="admin-panel" aria-expanded="false" hidden>Modelleinstellungen</button>
-              <details><summary>Sitzungsinformationen</summary><p id="session-clock"></p><p>Nicht exportierte Daten gehen bei Ablauf oder Serverneustart verloren.</p><p>Bitte nur synthetische Testdaten verwenden. Bei Live-Erkennung werden Bilder an OpenRouter übertragen.</p></details>
+              <details><summary>Sitzungsinformationen</summary><p id="session-clock"></p><p>Hochgeladene Fotos und Ergebnisse sind nur während der aktiven Sitzung verfügbar. Bestätigte Werte können als CSV exportiert werden. Die App speichert sie nicht automatisch in einer Datenbank.</p><p>Bitte nur synthetische Testdaten verwenden. Bei Live-Erkennung werden Bilder an OpenRouter übertragen.</p></details>
               <button id="logout-button" class="secondary">Abmelden</button>
             </div>
           </details>
@@ -83,8 +83,10 @@
           <div id="batch-view" hidden>
             <div class="section-heading">
               <div class="grow"><p class="eyebrow" id="batch-kicker">VORGANG</p>
-                <div id="batch-title-row"><h2 id="batch-title"></h2><button id="rename-button" class="link-button" aria-label="Vorgang umbenennen" title="Vorgang umbenennen">✎</button></div>
-                <form id="rename-form" hidden><input id="selected-batch-name" aria-label="Vorgangsname" maxlength="120" required /><button>Speichern</button><button id="rename-cancel" type="button" class="secondary">Abbrechen</button></form>
+                <div id="batch-title-row"><h2 id="batch-title"></h2><button id="rename-button" class="link-button" aria-label="Vorgang umbenennen" title="Vorgang umbenennen">✎</button><button id="batch-info-button" type="button" class="secondary" aria-label="Information zur Bogen-Zuordnung" aria-expanded="false" aria-controls="batch-info">i</button></div>
+                <form id="rename-form" hidden><input id="selected-batch-name" aria-label="Vorgangsname" aria-describedby="batch-name-hint" maxlength="120" required /><button>Speichern</button><button id="rename-cancel" type="button" class="secondary">Abbrechen</button></form>
+                <p id="batch-name-hint" class="small">Gemeinsame Bezeichnung für alle Fragebögen dieses Vorgangs. Wird in die CSV übernommen.</p>
+                <p id="batch-info" class="small" hidden>Der Vorgangsname verbindet alle zugehörigen Fragebögen. Jeder Bogen erhält zusätzlich eine laufende Nummer und eine eindeutige Kennung. So lassen sich die Ergebnisse später eindeutig einer Datenbank zuordnen. Die ursprünglichen Bilddateien werden nicht umbenannt.</p>
                 <p id="rename-error" class="error" role="alert" hidden></p></div>
               <div class="summary-actions">
                 <button id="recognize-all-button" class="secondary">1 · Bögen erfassen</button>
@@ -130,6 +132,7 @@
             <div id="detail-panel" hidden>
               <div class="detail-header"><h2 id="detail-header-title" tabindex="-1">Foto prüfen</h2><span id="review-remaining" class="status review_required" hidden></span><span id="item-indicator" class="status"></span>
                 <button id="back-overview" class="secondary">Zur Übersicht</button><button class="secondary" id="recognize-one-button">Foto erkennen / erneut versuchen</button></div>
+              <p id="review-sheet-name" class="small"></p>
               <nav class="review-jumps" aria-label="Prüfspalten"><a href="#original-pane">Original</a><a href="#recognition-pane">Erkennung</a><a href="#result-pane">Ergebnis</a></nav>
               <div id="review-findings"></div>
               <div id="detail-grid" class="detail-grid">

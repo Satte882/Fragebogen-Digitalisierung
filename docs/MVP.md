@@ -40,7 +40,7 @@ Einfaches Login mit Administrator- und Testrolle. Keine öffentliche Datenverarb
 
 - Auswahl **eines lokalen Fotoordners** oder alternativ mehrerer Einzelbilder im Browser; der Ordnername ist ausschließlich ein Vorschlag.
 - Unterstützte MVP-Eingaben: **JPEG und PNG**. Andere Formate erst nach Bedarf, keine automatische PDF-Erstellung.
-- Vorgangsname ist vor und nach dem Import editierbar (Beispiel: „Veranstaltung Nord – 02.05.2026“).
+- Vorgangsname ist vor und nach dem Import editierbar (Beispiel: „Veranstaltung Nord – 02.05.2026“). Ein Hinweis erklärt die Übernahme in die CSV. Die Oberfläche bildet die Bogenbezeichnung aus dem aktuellen Vorgangsnamen und der laufenden Nummer (z. B. „Veranstaltung Nord – 02.05.2026 · Bogen 001“). Beim Umbenennen bleiben Vorgangs-ID, Bild-ID, Nummer und ursprünglicher Dateiname erhalten.
 - System vergibt eindeutige Vorgangs-ID und je Bild eine stabile Bild-ID; dazu Dateiname und Reihenfolge.
 - Standardmäßig sind 40 Bilder pro Sitzung möglich. Die 30-Bögen-Demo verarbeitet 26 grüne und vier gelbe Festfälle ohne Anbieteraufrufe.
 - Übersicht zeigt Bildanzahl, Vorschaubilder, Status, Fortschritt und Fehler. Ein einzelner Fehlversuch darf nicht den gesamten Batch zerstören.
