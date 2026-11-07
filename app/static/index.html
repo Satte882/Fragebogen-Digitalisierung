@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Form Digitizer</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <script defer src="/static/app.js"></script>
+</head>
+<body>
+  <main id="root">
+    <section id="login-screen" class="login-card">
+      <p class="eyebrow">NEUTRALER MACHBARKEITSPROTOTYP</p>
+      <h1>Form Digitizer</h1>
+      <p>Fotos von Fragebögen digitalisieren, bei Bedarf prüfen und als CSV exportieren.</p>
+      <form id="login-form">
+        <label for="username">Benutzername</label>
+        <input id="username" name="username" autocomplete="username" placeholder="admin oder test" required />
+        <label for="password">Passwort</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required />
+        <button type="submit">Anmelden</button>
+      </form>
+      <p id="login-error" class="error" role="alert"></p>
+      <p class="subtle">Nur synthetische, selbst erstellte Testdaten hochladen. Bei Nutzung einer Modell-API werden Fotos extern verarbeitet.</p>
+    </section>
+
+    <div id="app-screen" hidden>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">FORM DIGITIZER · MVP</p>
+          <h1>Fragebogen-Digitalisierung</h1>
+          <p class="small">Nur Digitalisierung und Übersetzung, keine inhaltliche Analyse.</p>
+        </div>
+        <div class="top-actions">
+          <span class="pill" id="role-indicator"></span>
+          <span class="pill" id="provider-indicator"></span>
+          <button id="logout-button" class="secondary">Abmelden</button>
+        </div>
+      </header>
+      <div id="global-message" role="status" aria-live="polite"></div>
+      <div id="mock-banner" class="notice" hidden>DEMO-MODUS OHNE KI: Bei eigenen Uploads werden bewusst keine Werte erkannt. Die vordefinierten Demo-Bögen zeigen nur den Prüfablauf.</div>
+      <section class="toolbar">
+        <div class="toolbar-box">
+          <label for="folder-input" class="small-label">Ordner mit Fotos</label>
+          <input id="folder-input" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" webkitdirectory multiple />
+        </div>
+        <div class="toolbar-box">
+          <label for="files-input" class="small-label">Oder einzelne Fotos</label>
+          <input id="files-input" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" multiple />
+        </div>
+        <div class="toolbar-box grow">
+          <label for="batch-name" class="small-label">Vorgangsname (bearbeitbar)</label>
+          <input id="batch-name" type="text" maxlength="120" placeholder="z. B. Veranstaltung Nord – 02.05.2026" />
+        </div>
+        <button id="upload-button">Fotos hochladen</button>
+        <button id="demo-button" class="secondary">Synthetische Demo laden</button>
+      </section>
+      <section id="admin-panel" class="admin-panel" hidden>
+        <div><strong>Admin: Modelladapter</strong><p class="small">Änderungen gelten nur bis zum Serverneustart.</p></div>
+        <label>Modus <select id="provider-select"><option value="mock">Demo ohne KI</option><option value="openrouter">Gemini via OpenRouter</option></select></label>
+        <label>Modell-ID <input type="text" id="model-input" placeholder="z. B. google/gemini-2.5-flash" /></label>
+        <button id="save-model-button" class="secondary">Modell speichern</button>
+        <span id="model-key-status" class="small"></span>
+      </section>
+      <div class="workspace">
+        <aside class="batch-sidebar">
+          <h2>Vorgänge</h2>
+          <div id="batch-list" class="batch-list"><p class="small">Noch keine Vorgänge.</p></div>
+        </aside>
+        <section class="main-panel">
+          <div id="empty-state" class="empty-state"><h2>Vorgang auswählen oder anlegen</h2><p>Für die Oberfläche ohne KI-Kosten kannst du zunächst die synthetische Demo laden.</p></div>
+          <div id="batch-view" hidden>
+            <div class="section-heading">
+              <div class="grow"><label class="small-label" for="selected-batch-name">Vorgangsname</label>
+                <div class="inline"><input id="selected-batch-name" maxlength="120" /><button id="rename-button" class="secondary">Umbenennen</button></div>
+                <p id="batch-id" class="small code"></p></div>
+              <div class="summary-actions">
+                <button id="recognize-all-button" class="secondary">Alle offenen Fotos erkennen</button>
+                <button id="confirm-ready-button" class="secondary">Alle grünen übernehmen</button>
+                <button id="export-button">CSV exportieren</button>
+              </div>
+            </div>
+            <p id="batch-summary" class="summary" aria-live="polite"></p>
+            <div id="photo-list" class="photo-list"></div>
+            <div id="detail-panel" hidden>
+              <div class="detail-header"><h2>Foto prüfen</h2><span id="item-indicator" class="pill"></span>
+                <button class="secondary" id="recognize-one-button">Foto erkennen / erneut versuchen</button></div>
+              <div id="detail-grid" class="detail-grid">
+                <section class="pane"><div class="pane-title"><h3>1 · Originalbild</h3><button id="toggle-image-button" class="link-button">Ein-/ausblenden</button></div>
+                  <img id="source-image" alt="Eingescanntes, vom Nutzer hochgeladenes Formular" />
+                  <p class="small">Original zur visuellen Gegenprüfung · zum Vergrößern anklicken.</p>
+                </section>
+                <section class="pane"><div class="pane-title"><h3>2 · KI-Erkennung</h3></div>
+                  <p id="source-note" class="small"></p>
+                  <div id="raw-fields"></div>
+                  <details><summary>Unveränderte Modellantwort (JSON)</summary><pre id="raw-json" class="raw-json"></pre></details>
+                </section>
+                <section class="pane"><div class="pane-title"><h3>3 · Finales Ergebnis</h3></div>
+                  <div id="final-fields"></div>
+                  <label id="evidence-wrap" class="check-label" hidden><input type="checkbox" id="evidence-confirmed" />Ich habe den sichtbaren Beleg für nachträglich eingetragene Zahlen geprüft.</label>
+                  <div class="pane-actions"><button id="edit-button" class="secondary">Manuell prüfen</button><button id="confirm-button">Final übernehmen</button><button id="reopen-button" class="secondary" hidden>Erneut bearbeiten</button></div>
+                </section>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <footer>Prototyp mit kurzlebigen Sitzungen: Ergebnisse vor Sitzungsende als CSV exportieren. Grüne Markierung bedeutet bestandene Prüfregeln, nicht garantierte Richtigkeit.</footer>
+    </div>
+  </main>
+</body>
+</html>

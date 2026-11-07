@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: form-digitizer-demo
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: APP_ENV
+        value: production
+      - key: MODEL_PROVIDER
+        value: mock
+      - key: OPENROUTER_MODEL
+        value: ""
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: ADMIN_PASSWORD_HASH
+        sync: false
+      - key: TEST_PASSWORD_HASH
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: MAX_IMAGES_PER_SESSION
+        value: "20"
+      - key: MAX_UPLOAD_MB
+        value: "10"
+      - key: SESSION_TTL_MINUTES
+        value: "60"

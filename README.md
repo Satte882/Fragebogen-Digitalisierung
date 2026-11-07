@@ -1,54 +1,63 @@
 # Form Digitizer – Fragebogen-Digitalisierung
 
-**Status:** Konzept und MVP-Spezifikation (Stand: 07.11.2026). **Noch keine lauffähige Anwendung.**
+**Ausführbarer MVP (Stand: 07.11.2026), nicht produktionsreif.** Neutraler Prototyp zur Digitalisierung von Papierfragebögen. Fünf Ankreuzfragen (1–4) und ein Freitextfeld werden aus Fotos erfasst, bei Bedarf manuell geprüft und als **final bestätigte CSV** exportiert. Freitexte werden ins Deutsche übersetzt; es erfolgt **keine inhaltliche Analyse**.
 
-Ein unabhängiger, neutraler Machbarkeitsprototyp: Fotografierte Papierfragebögen werden mit einem multimodalen KI-Modell gelesen, von Menschen bei Bedarf überprüft und als **strukturierte CSV-Daten** ausgegeben. Die Anwendung **digitalisiert und übersetzt**, führt aber **keine inhaltliche Auswertung der Antworten** durch.
+> Öffentliches Testprojekt: Ausschließlich selbst erstellte oder synthetische Fotos verwenden. **Keine echten Kunden-, Firmen- oder Personendaten!** Bei OpenRouter-Nutzung gehen Bilder an einen externen KI-Dienst.
 
-> **Hinweis für die Benutzeroberfläche:** „Diese Anwendung digitalisiert Fragebögen und übersetzt Freitexte ins Deutsche. Eine inhaltliche Analyse oder Bewertung der Kundenantworten findet nicht statt.“
+## Implementierte Funktionen
 
-## Ziele und Grenzen
+- Mehrfach- und Browser-Ordnerimport (JPEG/PNG), Vorgangsname, stabile Vorgangs- und Bild-ID.
+- Dreispaltenansicht: Originalbild, unveränderte KI-Erkennung, finaler Datensatz. Grün = technische Prüfregeln bestanden, **keine 100-%-Garantie**. Unsichere Ergebnisse manuell prüfen und korrigieren.
+- Eindeutig leere Felder als **Keine Antwort**; mehrere/unklare Kreuze werden nicht geraten. Wert nachtragen nur mit bestätigtem sichtbaren Beleg.
+- Originalsprachige Transkription und Übersetzung nach Deutsch, ohne Glättung.
+- CSV nur final bestätigte Werte und Zuordnungsdaten; **keine Roh-Erkennung im Export**.
+- Login-Rollen **admin** und **test**: gleiche fachliche Funktionen; Admin zusätzlich Modell-Einstellungen. Der gemeinsame Testlogin erhält für jede Anmeldung einen **isolierten Arbeitsbereich**.
+- OpenRouter-/Gemini-Adapter, Demo-Mock ohne externe API, drei **synthetische Fixbeispiele** (nicht als echte Modellleistung zu verstehen), Render-Konfiguration und automatisierte Tests.
 
-- **Eingabe:** Ein fester, neutraler Fragebogentyp; **5 Fragen mit Werten 1–4**, dazu **4–5 Zeilen handschriftlicher Freitext**. Mehrere Fotos können gemeinsam hochgeladen werden, bevorzugt per Ordnerauswahl im Browser.
-- **Vorgänge:** Ordnername wird als Vorgangsname vorgeschlagen, ist bearbeitbar und wird um eine stabile Vorgangs-ID ergänzt. Alle Bilder sind einem Vorgang zugeordnet.
-- **KI:** Multimodales Gemini-Modell **über OpenRouter** als erster Adapter; später austauschbar gegen einen anderen API-Adapter. API-Verarbeitung ist **nicht lokal**: Bilder werden an den Modellanbieter übertragen. Test ausschließlich mit eigens erstellten/synthetischen Inhalten.
-- **Prüfung:** Dreispaltenansicht **Originalbild | KI-Roh-Erkennung | bestätigtes Ergebnis**. Bei plausiblen Fällen rechts vorausfüllen, bei Unklarheiten „Manuell prüfen“; anschließend „Final übernehmen“. Bilder und Felder bleiben kontrollierbar.
-- **Freitext:** Originalgetreue Transkription und zusätzlich **Übersetzung nach Deutsch**, **keine Glättung**, keine Sentimentanalyse oder Zusammenfassung.
-- **Kreuze:** Eindeutig fehlende Antwort = „Keine Antwort“; unsichere, mehrfache oder nicht lesbare Markierung = gesonderter Status. Keine Antworten erfinden oder vom Prüfer ergänzen.
-- **Export:** **CSV nur mit final bestätigten Angaben**, Vorgangszuordnung und Status. Die KI-Roh-Erkennung wird **nicht** mitexportiert.
-- **Rollen:** **Admin** und gemeinsamer **Testzugang** dürfen beide sämtliche Fachfunktionen einschließlich Korrektur und CSV-Export ausführen. Nur der Admin darf technische Einstellungen verwalten. **Jede Anmeldung bekommt einen isolierten Arbeitsbereich**, auch bei gemeinsamem Testlogin.
-- **Betrieb:** Erst lokal auf Windows, später optional als Demo auf Render. Ohne dauerhafte Datenbank; ein abgelaufener Arbeitsbereich kann nicht wiederhergestellt werden. Zugleich gibt es neutrale, fest bereitgestellte Demodaten für eine Vorführung.
+## Lokal unter Windows starten
 
-## Fachlicher Ablauf
+~~~powershell
+git clone https://github.com/Satte882/Fragebogen-Digitalisierung.git
+cd Fragebogen-Digitalisierung
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements-dev.txt
+python scripts/bootstrap_local.py
+python -m uvicorn app.main:app --reload
+~~~
 
-1. Anmelden (Admin oder Test).
-2. Fotoordner oder mehrere Bilddateien auswählen; bearbeitbaren Vorgangsnamen bestätigen.
-3. Bilder einzeln an das gewählte multimodale Modell übermitteln und Ergebnisse **strukturiert** erhalten.
-4. Pro Bild/Pflichtfeld Ergebnisse und Auffälligkeiten anzeigen. **Grün = definierte technische Prüfregeln bestanden, niemals „100 % korrekt“**; Gelb = Prüfung erforderlich.
-5. In der Dreispaltenansicht das Bild gegen Roh-Erkennung und endgültigen Datensatz vergleichen; bei Bedarf korrigieren und **final bestätigen**.
-6. Statusübersicht („ohne Korrektur übernommen“, „manuell korrigiert“, „noch offen“) und Download der **CSV mit ausschließlich finalen Datensätzen**.
+Im Browser **http://127.0.0.1:8000** öffnen. `bootstrap_local.py` erzeugt ein privates `.env` und zeigt einmalig zwei zufällige Passwörter für die Konten **admin** und **test**. Die Datei `.env` niemals in Git einchecken. Sollte PowerShell die Aktivierung verweigern, die Befehle mit `.\.venv\Scripts\python.exe` ausführen. Python 3.12+ erforderlich.
 
-## Geplante technische Basis
+Zunächst **„Synthetische Demo laden“** wählen, um Grün/Gelb, Prüfung und CSV ohne API-Kosten zu erproben. Eigene Foto-Uploads erhalten im Mock-Modus ausdrücklich **keine Schein-Erkennung**.
 
-- Python + FastAPI, einfache serverseitig angebundene Weboberfläche.
-- Adapter-Schnittstelle für OpenRouter/Gemini und einen späteren alternativen Modell-Endpunkt.
-- Valider, versionierter JSON-Zwischendatensatz; regelbasierte Feldvalidierung.
-- Serverseitige Authentifizierung, kurzlebige isolierte Sitzungen, kein dauerhafter Bildspeicher im MVP.
-- Für die Qualitätsevaluation: Roh-Erkennung und Korrektur **nur innerhalb des jeweiligen Arbeitsbereichs** vergleichbar, nicht Teil des CSV-Exports.
-- CSV-Export UTF-8 mit BOM zur problemlosen Anzeige deutscher Texte in Excel.
+### Mit Gemini über OpenRouter
 
-## Projektdokumentation
+In der lokalen `.env` ergänzen und den Server neu starten:
 
-| Dokument | Inhalt |
-| --- | --- |
-| [MVP-Anforderungen](docs/MVP.md) | Funktionen, Rollen, Bedienablauf und Abnahmekriterien |
-| [Technisches Konzept](docs/ARCHITECTURE.md) | Architektur, Modelladapter, Sitzungen, Sicherheit, Deployment |
-| [Datenvertrag und CSV](docs/DATA_CONTRACT.md) | Feldstatus, JSON-Zwischenmodell, Exportregeln |
-| [Test- und Evaluationsplan](docs/TEST_PLAN.md) | Qualität und reproduzierbarer Machbarkeitsnachweis |
-| [Umsetzungsplan](docs/ROADMAP.md) | Schrittfolge und bewusst ausgeschlossener Umfang |
-| [Neutraler Musterfragebogen](examples/musterfragebogen.html) | Druckbare, eigens erstellte Formularvorlage |
+~~~dotenv
+MODEL_PROVIDER=openrouter
+OPENROUTER_API_KEY=DEIN_API_SCHLUESSEL
+OPENROUTER_MODEL=google/gemini-2.5-flash
+~~~
 
-## Öffentliche Repository-Regeln
+Die Modell-ID ist nur ein **Beispiel**. Vorher die Verfügbarkeit eines bildfähigen Gemini-Modells unter https://openrouter.ai/models prüfen. Es können API-Kosten entstehen. Modellaufrufe sind serverseitig auf 25 pro Sitzung und 80 pro Prozess begrenzt; zusätzlich ein **Budgetlimit beim Anbieter** setzen. Die Live-Erkennungsqualität wurde **noch nicht verifiziert**.
 
-Dieses Repository enthält **keine realen Kundendaten, keine fremden internen Formulare, keine Zugangsdaten und keine API-Schlüssel**. Keine Fotos, hochgeladenen Formulare oder CSV-Ergebnisse committen. API-Schlüssel gehören in lokale Umgebungsvariablen bzw. in die Secret-Verwaltung des Hostinganbieters.
+Tests: `python -m pytest -q`.
 
-**Wichtig:** Das Repository enthält derzeit **Anforderungen und eine Formularvorlage**, aber noch keinen funktionierenden Upload-, Login- oder Erkennungsdienst. Das erste Ziel ist ein überprüfbarer MVP – keine Produktivsoftware.
+## Render-Demo (optional)
+
+Der [Render-Blueprint](render.yaml) enthält die Webservice-Konfiguration. Er benötigt im Render-Dashboard `ADMIN_PASSWORD_HASH` und `TEST_PASSWORD_HASH` (aus der lokalen `.env`, **Hashwerte statt Klartext**); `SESSION_SECRET` wird im Blueprint generiert. Optional für Live-Modelle: `OPENROUTER_API_KEY`, `MODEL_PROVIDER=openrouter` und `OPENROUTER_MODEL`. Standardmäßig startet die Demo **ohne KI** im Mock-Modus. **Render-Free ist flüchtig, kann schlafen und ist keine Produktionsumgebung.** Sitzungen und nicht exportierte Daten gehen beim Neustart verloren. Nur einen Worker betreiben; ohne Secrets bricht der Start absichtlich ab.
+
+Ausführliche Hinweise: [Runbook](docs/RUNBOOK.md) · [Render Free](https://render.com/docs/free).
+
+## Dokumentation
+
+- [MVP-Anforderungen](docs/MVP.md)
+- [Technische Architektur](docs/ARCHITECTURE.md)
+- [Datenvertrag und CSV](docs/DATA_CONTRACT.md)
+- [Testplan](docs/TEST_PLAN.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Betriebshandbuch](docs/RUNBOOK.md)
+- [Neutraler Musterfragebogen](examples/musterfragebogen.html)
+
+**Pilotgrenze:** Keine produktive Datenschutz-/Sicherheitsfreigabe, keine dauerhafte Datenbank, kein Qualitätsversprechen über echte Handschriften. Automatisierte API-/Vertragstests prüfen die Software; eine echte Bildqualitätsabnahme mit OpenRouter-Schlüssel und selbst erstellten handschriftlichen Fotos steht noch aus.
