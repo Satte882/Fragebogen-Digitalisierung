@@ -6,7 +6,8 @@
 
 ## Implementierte Funktionen
 
-- Mehrfach- und Browser-Ordnerimport (JPEG/PNG), Vorgangsname, stabile Vorgangs- und Bild-ID.
+- Mehrfach- und Browser-Ordnerimport (JPEG/PNG), serverseitiger Verarbeitungslauf für 30 Bögen mit Fortschritt und Fehlerwiederholung, stabile Vorgangs- und Bild-IDs.
+- Prüfwarteschlange, freiwillige Stichprobe und getrennte Herkunft von Sammelübernahme und Einzelprüfung.
 - Dreispaltenansicht: Originalbild, unveränderte KI-Erkennung, finaler Datensatz. Grün = technische Prüfregeln bestanden, **keine 100-%-Garantie**. Unsichere Ergebnisse manuell prüfen und korrigieren.
 - Eindeutig leere Felder als **Keine Antwort**; mehrere/unklare Kreuze werden nicht geraten. Wert nachtragen nur mit bestätigtem sichtbaren Beleg.
 - Originalsprachige Transkription und Übersetzung nach Deutsch, ohne Glättung.
@@ -28,7 +29,7 @@ python -m uvicorn app.main:app --reload
 
 Im Browser **http://127.0.0.1:8000** öffnen. `bootstrap_local.py` erzeugt ein privates `.env` und zeigt einmalig zwei zufällige Passwörter für die Konten **admin** und **test**. Die Datei `.env` niemals in Git einchecken. Sollte PowerShell die Aktivierung verweigern, die Befehle mit `.\.venv\Scripts\python.exe` ausführen. Python 3.12+ erforderlich.
 
-Zunächst **„Synthetische Demo laden“** wählen, um Grün/Gelb, Prüfung und CSV ohne API-Kosten zu erproben. Eigene Foto-Uploads erhalten im Mock-Modus ausdrücklich **keine Schein-Erkennung**.
+Unter **„Demo-Werkzeuge“ → „Neue Batch-Demo · 30 Bögen“** erscheint sofort ein Testvorgang mit 26 übernahmebereiten und vier zu prüfenden Bögen. Der Ablauf über Einzelprüfung, Sammelbestätigung und CSV benötigt dabei keine Anbieteraufrufe. Reguläre Uploads werden über **„Bögen erfassen“** verarbeitet. Eigene Foto-Uploads erhalten im Mock-Modus ausdrücklich **keine Schein-Erkennung**.
 
 ### Mit Gemini über OpenRouter
 
@@ -40,7 +41,7 @@ OPENROUTER_API_KEY=DEIN_API_SCHLUESSEL
 OPENROUTER_MODEL=google/gemini-2.5-flash
 ~~~
 
-Die Modell-ID ist nur ein **Beispiel**. Vorher die Verfügbarkeit eines bildfähigen Gemini-Modells unter https://openrouter.ai/models prüfen. Es können API-Kosten entstehen. Modellaufrufe sind serverseitig auf 25 pro Sitzung und 80 pro Prozess begrenzt; zusätzlich ein **Budgetlimit beim Anbieter** setzen. Die Live-Erkennungsqualität wurde **noch nicht verifiziert**.
+Die Modell-ID ist nur ein **Beispiel**. Vorher die Verfügbarkeit eines bildfähigen Gemini-Modells unter https://openrouter.ai/models prüfen. Es können API-Kosten entstehen. Standardmäßig gelten 100 Live-Aufrufe pro Sitzung und 250 pro Prozess. Auch Fehler und Wiederholungen zählen. Die Werte sind in der [.env-Vorlage](.env.example) dokumentiert. Ein Ausgabenlimit beim Anbieter bleibt sinnvoll. Die bisherige Live-Stichprobe umfasst nur drei synthetische Druckbögen.
 
 Tests: `python -m pytest -q`.
 

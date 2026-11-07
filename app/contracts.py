@@ -1,7 +1,7 @@
 """Strict field contract; the model response must be independently validated."""
 from __future__ import annotations
 
-from typing import Literal
+from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
@@ -39,6 +39,16 @@ class TextResult(BaseModel):
         return self
 
 
+ReviewField = Literal["q1", "q2", "q3", "q4", "q5", "text", "image"]
+
+
+class ReviewFinding(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+    field: ReviewField
+    kind: Literal["multiple_marks", "unclear_mark", "unreadable_text", "translation", "image_quality", "other"]
+    reason: str = Field(min_length=1, max_length=300)
+
+
 class Recognition(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     q1: Answer
@@ -49,10 +59,21 @@ class Recognition(BaseModel):
     text: TextResult
     warnings: list[str] = Field(default_factory=list, max_length=10)
 
+    findings: list[ReviewFinding] = Field(default_factory=list, max_length=10)
+    regions: dict[ReviewField, list[float]] = Field(default_factory=dict, max_length=7)
+
+    @model_validator(mode="after")
+    def remove_invalid_regions(self) -> "Recognition":
+        self.regions = {
+            name: box for name, box in self.regions.items()
+            if len(box) == 4 and 0 <= box[0] < box[2] <= 1 and 0 <= box[1] < box[3] <= 1
+        }
+        return self
+
     @property
     def recommended_status(self) -> str:
         answers = [getattr(self, f"q{i}") for i in range(1, 6)]
-        if (self.warnings or any(a.status in ("multiple", "unreadable") for a in answers)
+        if (self.findings or self.warnings or any(a.status in ("multiple", "unreadable") for a in answers)
                 or self.text.text_status in ("unreadable", "review_required")):
             return "review_required"
         return "ready"
@@ -92,6 +113,7 @@ class Confirmation(BaseModel):
     q5: FinalAnswer
     text: FinalText
     evidence_confirmed: bool = False
+    multiple_reasons: dict[Literal['q1', 'q2', 'q3', 'q4', 'q5'], Annotated[str, Field(max_length=400)]] = Field(default_factory=dict, max_length=5)
 
 
 def suggestion(recognition: Recognition) -> dict:

@@ -44,9 +44,43 @@ def test_openrouter_multimodal_payload_and_result(monkeypatch):
     assert 'Hello there' in raw
 
 
+@pytest.mark.parametrize("status,code", [(429,"rate_limit"), (503,"provider_unavailable"), (401,"provider_config")])
+def test_openrouter_classifies_http_failures(monkeypatch, status, code):
+    original = httpx.AsyncClient
+    transport = httpx.MockTransport(lambda req: httpx.Response(status, headers={"Retry-After":"4"}))
+    monkeypatch.setattr(providers.httpx, "AsyncClient", lambda **kw: original(transport=transport, **kw))
+    with pytest.raises(ProviderError) as raised:
+        asyncio.run(OpenRouterProvider("test-only", "model").recognize(b"synthetic"))
+    assert raised.value.code == code
+    assert raised.value.retry_after == (4 if status in (429, 503) else 0)
+
+
 def test_openrouter_bad_json_is_safe_error(monkeypatch):
     original_async_client=httpx.AsyncClient
     transport=httpx.MockTransport(lambda req: httpx.Response(200,json={'choices':[{'message':{'content':'nonsense'}}]}))
     monkeypatch.setattr(providers.httpx,'AsyncClient',lambda **kw:original_async_client(transport=transport,**kw))
     with pytest.raises(ProviderError,match='Modellantwort'):
         asyncio.run(OpenRouterProvider('fake-test-key','google/gemini-test').recognize(b'synthetic-binary'))
+
+
+@pytest.mark.parametrize("failure", ["timeout", "truncated", "invalid-schema", "too-long"])
+def test_openrouter_rejects_failed_or_unusable_results(monkeypatch, failure):
+    def handler(request):
+        if failure == "timeout":
+            raise httpx.ReadTimeout("simulated", request=request)
+        data = dict(VALID_RESULT)
+        if failure == "invalid-schema":
+            data["q1"] = {"status": "answered", "value": "4"}
+        content = json.dumps(data)
+        if failure == "too-long":
+            content += " " * 30001
+        return httpx.Response(200, json={"choices": [{
+            "finish_reason": "length" if failure == "truncated" else "stop",
+            "message": {"content": content},
+        }]})
+
+    original = httpx.AsyncClient
+    transport = httpx.MockTransport(handler)
+    monkeypatch.setattr(providers.httpx, "AsyncClient", lambda **kw: original(transport=transport, **kw))
+    with pytest.raises(ProviderError, match="Modellantwort"):
+        asyncio.run(OpenRouterProvider("fake-test-key", "google/gemini-test").recognize(b"synthetic-binary"))

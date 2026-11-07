@@ -13,11 +13,11 @@
       <p class="eyebrow">NEUTRALER MACHBARKEITSPROTOTYP</p>
       <h1>Form Digitizer</h1>
       <p>Fotos von Fragebögen digitalisieren, bei Bedarf prüfen und als CSV exportieren.</p>
-      <form id="login-form">
+      <form id="login-form" method="post">
         <label for="username">Benutzername</label>
-        <input id="username" name="username" autocomplete="username" placeholder="admin oder test" required />
+        <input id="username" name="username" autocomplete="username" maxlength="32" placeholder="admin oder test" required />
         <label for="password">Passwort</label>
-        <input id="password" name="password" type="password" autocomplete="current-password" required />
+        <input id="password" name="password" type="password" autocomplete="current-password" maxlength="256" required />
         <button type="submit">Anmelden</button>
       </form>
       <p id="login-error" class="error" role="alert"></p>
@@ -27,19 +27,14 @@
     <div id="app-screen" hidden>
       <header class="topbar">
         <div>
-          <p class="eyebrow">FORM DIGITIZER · MVP</p>
-          <h1>Fragebogen-Digitalisierung</h1>
-          <p class="small">Nur Digitalisierung und Übersetzung, keine inhaltliche Analyse.</p>
+          <p class="eyebrow">PILOT · DOKUMENTENWORKFLOW</p>
+          <h1>Form Digitizer</h1>
         </div>
-        <div class="top-actions">
-          <span class="pill" id="role-indicator"></span>
-          <span class="pill" id="provider-indicator"></span>
-          <button id="logout-button" class="secondary">Abmelden</button>
-        </div>
+        <span class="pill" id="provider-indicator"></span>
       </header>
+      <p id="session-warning" class="notice" role="alert" hidden></p>
       <div id="global-message" role="status" aria-live="polite"></div>
-      <div id="mock-banner" class="notice" hidden>DEMO-MODUS OHNE KI: Bei eigenen Uploads werden bewusst keine Werte erkannt. Die vordefinierten Demo-Bögen zeigen nur den Prüfablauf.</div>
-      <section class="toolbar">
+      <section id="upload-panel" class="toolbar" hidden>
         <div class="toolbar-box">
           <label for="folder-input" class="small-label">Ordner mit Fotos</label>
           <input id="folder-input" type="file" accept=".jpg,.jpeg,.png,image/jpeg,image/png" webkitdirectory multiple />
@@ -53,52 +48,108 @@
           <input id="batch-name" type="text" maxlength="120" placeholder="z. B. Veranstaltung Nord – 02.05.2026" />
         </div>
         <button id="upload-button">Fotos hochladen</button>
-        <button id="demo-button" class="secondary">Synthetische Demo laden</button>
+        <p id="upload-error" class="error inline-error" role="alert" hidden></p>
       </section>
       <section id="admin-panel" class="admin-panel" hidden>
         <div><strong>Admin: Modelladapter</strong><p class="small">Änderungen gelten nur bis zum Serverneustart.</p></div>
-        <label>Modus <select id="provider-select"><option value="mock">Demo ohne KI</option><option value="openrouter">Gemini via OpenRouter</option></select></label>
+        <label>Modus <select id="provider-select"><option value="mock">Demo ohne KI</option><option value="openrouter">OpenRouter</option></select></label>
         <label>Modell-ID <input type="text" id="model-input" placeholder="z. B. google/gemini-2.5-flash" /></label>
         <button id="save-model-button" class="secondary">Modell speichern</button>
         <span id="model-key-status" class="small"></span>
       </section>
       <div class="workspace">
         <aside class="batch-sidebar">
+          <p class="eyebrow">ARBEITSBEREICH</p>
           <h2>Vorgänge</h2>
+          <button id="toggle-upload" aria-controls="upload-panel" aria-expanded="false">+ Neuer Vorgang</button>
+          <details class="demo-tools"><summary>Demo-Werkzeuge</summary>
+            <button id="demo-button" class="secondary">Kurzdemo · 3 Bögen</button>
+            <button id="batch-demo-button" class="secondary">Neue Batch-Demo · 30 Bögen</button>
+          </details>
           <div id="batch-list" class="batch-list"><p class="small">Noch keine Vorgänge.</p></div>
+          <details id="quality-panel" class="quality-panel"><summary>Qualitätsnachweis</summary><p>Gemma 4 · 3 synthetische Druckbögen</p><dl><div><dt>Feldtreffer</dt><dd>15 / 15</dd></div><div><dt>Falsch grüne Bögen</dt><dd>0 / 2</dd></div></dl><p>Erste Live-Stichprobe. Handschrift und schwierige Fotos bleiben zu prüfen.</p></details>
+          <details id="user-menu" class="user-menu">
+            <summary><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M5 20v-2a7 7 0 0 1 14 0v2"/></svg><span id="role-indicator"></span></summary>
+            <div class="user-menu-actions">
+              <button id="toggle-admin" class="secondary" aria-controls="admin-panel" aria-expanded="false" hidden>Modelleinstellungen</button>
+              <details><summary>Sitzungsinformationen</summary><p id="session-clock"></p><p>Nicht exportierte Daten gehen bei Ablauf oder Serverneustart verloren.</p><p>Bitte nur synthetische Testdaten verwenden. Bei Live-Erkennung werden Bilder an OpenRouter übertragen.</p></details>
+              <button id="logout-button" class="secondary">Abmelden</button>
+            </div>
+          </details>
         </aside>
         <section class="main-panel">
-          <div id="empty-state" class="empty-state"><h2>Vorgang auswählen oder anlegen</h2><p>Für die Oberfläche ohne KI-Kosten kannst du zunächst die synthetische Demo laden.</p></div>
+          <div id="empty-state" class="empty-state"><p class="eyebrow">VOM PAPIER ZUR CSV</p><h2>Fragebögen digitalisieren</h2><p>Fotos importieren, Ergebnisse am Original prüfen und bestätigte Daten exportieren.</p><button id="empty-demo">Demo öffnen</button></div>
           <div id="batch-view" hidden>
             <div class="section-heading">
-              <div class="grow"><label class="small-label" for="selected-batch-name">Vorgangsname</label>
-                <div class="inline"><input id="selected-batch-name" maxlength="120" /><button id="rename-button" class="secondary">Umbenennen</button></div>
-                <p id="batch-id" class="small code"></p></div>
+              <div class="grow"><p class="eyebrow" id="batch-kicker">VORGANG</p>
+                <div id="batch-title-row"><h2 id="batch-title"></h2><button id="rename-button" class="link-button" aria-label="Vorgang umbenennen" title="Vorgang umbenennen">✎</button></div>
+                <form id="rename-form" hidden><input id="selected-batch-name" aria-label="Vorgangsname" maxlength="120" required /><button>Speichern</button><button id="rename-cancel" type="button" class="secondary">Abbrechen</button></form>
+                <p id="rename-error" class="error" role="alert" hidden></p></div>
               <div class="summary-actions">
-                <button id="recognize-all-button" class="secondary">Alle offenen Fotos erkennen</button>
-                <button id="confirm-ready-button" class="secondary">Alle grünen übernehmen</button>
-                <button id="export-button">CSV exportieren</button>
+                <button id="recognize-all-button" class="secondary">1 · Bögen erfassen</button>
+                <button id="retry-button" class="secondary" hidden>Fehler erneut verarbeiten</button>
               </div>
             </div>
-            <p id="batch-summary" class="summary" aria-live="polite"></p>
-            <div id="photo-list" class="photo-list"></div>
+            <div id="batch-progress" class="batch-progress" role="status" hidden><progress id="run-progress"></progress><strong id="run-label"></strong><span id="run-breakdown" class="small"></span></div>
+            <p id="batch-budget" class="small" hidden></p>
+            <div id="batch-summary" class="summary" aria-live="polite"></div>
+            <section id="workflow-overview" aria-label="Vorgangsübersicht">
+              <div class="queue-bar"><h3 class="photo-heading">2 · Ausnahmen prüfen</h3>
+                <button id="next-review-button" class="secondary">Nächsten offenen Fall prüfen</button></div>
+              <p id="batch-overview" class="overview-note" tabindex="-1"></p>
+              <div id="queue-filters" class="queue-filters" role="group" aria-label="Bögen filtern">
+                <button data-filter="review_required" class="secondary">Zu prüfen</button>
+                <button data-filter="ready" class="secondary">Übernahmebereit</button>
+                <button data-filter="confirmed" class="secondary">Bestätigt</button>
+                <button data-filter="all" class="secondary">Alle</button>
+                <button data-filter="error" class="secondary" hidden>Fehler</button>
+                <button data-filter="sample" class="secondary" hidden>Gegenkontrolle</button>
+              </div>
+              <div id="photo-list" class="photo-list" aria-label="Bögen im Vorgang"></div>
+              <details id="quality-control" class="quality-control" hidden>
+                <summary>Qualitätskontrolle</summary>
+                <p class="small">Diese Bögen wurden ohne erkennbare Auffälligkeiten verarbeitet. Eine freiwillige Gegenkontrolle kann unbemerkte Erkennungsfehler aufdecken.</p>
+                <button id="sample-button" class="secondary">Übernahmebereite Bögen kontrollieren</button>
+              </details>
+              <p id="sample-status" class="small" hidden></p>
+              <section id="bulk-step" class="workflow-step" aria-labelledby="bulk-title" hidden>
+                <div><p class="eyebrow">03 · SAMMELBESTÄTIGUNG</p><h3 id="bulk-title">Übernahmebereite Bögen abschließen</h3>
+                  <p id="bulk-count"></p><p class="small">Diese Bögen haben die technischen Prüfregeln bestanden. Die Sammelbestätigung dokumentiert keine individuelle Sichtprüfung.</p></div>
+                <div><button id="confirm-ready-button" class="secondary">Bögen gesammelt bestätigen</button><p id="bulk-error" class="error" role="alert" hidden></p></div>
+              </section>
+              <section id="export-step" class="workflow-step" aria-labelledby="export-title" hidden>
+                <div><p class="eyebrow">04 · EXPORT</p><h3 id="export-title"></h3><p id="export-note" class="small"></p></div>
+                <div><button id="export-button">CSV herunterladen</button><p id="export-error" class="error" role="alert" hidden></p></div>
+              </section>
+              <section id="review-summary" class="workflow-step review-summary" aria-labelledby="review-summary-title" hidden>
+                <div><h3 id="review-summary-title">Wie die Bögen bestätigt wurden</h3><dl id="review-counts"></dl></div>
+                <details id="correction-details"><summary>Korrekturen anzeigen</summary><div id="correction-list" aria-live="polite"></div></details>
+              </section>
+            </section>
             <div id="detail-panel" hidden>
-              <div class="detail-header"><h2>Foto prüfen</h2><span id="item-indicator" class="pill"></span>
-                <button class="secondary" id="recognize-one-button">Foto erkennen / erneut versuchen</button></div>
+              <div class="detail-header"><h2 id="detail-header-title" tabindex="-1">Foto prüfen</h2><span id="item-indicator" class="pill"></span>
+                <button id="back-overview" class="secondary">Zur Übersicht</button><button class="secondary" id="recognize-one-button">Foto erkennen / erneut versuchen</button></div>
+              <nav class="review-jumps" aria-label="Prüfspalten"><a href="#original-pane">Original</a><a href="#recognition-pane">Erkennung</a><a href="#result-pane">Ergebnis</a></nav>
+              <div id="review-findings"></div>
               <div id="detail-grid" class="detail-grid">
-                <section class="pane"><div class="pane-title"><h3>1 · Originalbild</h3><button id="toggle-image-button" class="link-button">Ein-/ausblenden</button></div>
-                  <img id="source-image" alt="Eingescanntes, vom Nutzer hochgeladenes Formular" />
+                <section class="pane" id="original-pane"><div class="pane-title"><h3><span class="pane-step">01</span> Original</h3><span class="image-actions"><button id="zoom-image-button" class="link-button" aria-expanded="false">Zoom</button><button id="toggle-image-button" class="link-button">Ein-/ausblenden</button></span></div>
+                  <div id="source-frame">
+                      <img id="source-image" alt="Original des ausgewählten Fragebogens" />
+                      <svg id="source-highlight" viewBox="0 0 1000 1000" preserveAspectRatio="none" aria-hidden="true" hidden><rect id="source-region"></rect></svg>
+                  </div>
+                  <p id="focus-note" class="small" role="status"></p>
                   <p class="small">Original zur visuellen Gegenprüfung · zum Vergrößern anklicken.</p>
                 </section>
-                <section class="pane"><div class="pane-title"><h3>2 · KI-Erkennung</h3></div>
-                  <p id="source-note" class="small"></p>
+                <section class="pane" id="recognition-pane"><div class="pane-title"><h3><span class="pane-step">02</span> Erkennung</h3></div>
                   <div id="raw-fields"></div>
-                  <details><summary>Unveränderte Modellantwort (JSON)</summary><pre id="raw-json" class="raw-json"></pre></details>
+                  <p id="source-note" class="small"></p>
+                  <details><summary>Technische Details</summary><p id="raw-summary" class="small"></p><pre id="raw-json" class="raw-json"></pre></details>
                 </section>
-                <section class="pane"><div class="pane-title"><h3>3 · Finales Ergebnis</h3></div>
+                <section class="pane" id="result-pane"><div class="pane-title"><h3><span class="pane-step">03</span> Ergebnis</h3><span id="result-state" class="result-note" hidden>Vorschau</span></div>
                   <div id="final-fields"></div>
-                  <label id="evidence-wrap" class="check-label" hidden><input type="checkbox" id="evidence-confirmed" />Ich bestätige: Jede neu eingetragene oder geänderte Zahl ist im Foto sichtbar.</label>
-                  <div class="pane-actions"><button id="edit-button" class="secondary">Manuell prüfen</button><button id="confirm-button">Final übernehmen</button><button id="reopen-button" class="secondary" hidden>Erneut bearbeiten</button></div>
+                  <label id="evidence-wrap" class="check-label" hidden><input type="checkbox" id="evidence-confirmed" />Ich habe die geänderten Antworten oder Texte am Original geprüft und kann sie dort belegen.</label>
+                  <p id="review-error" class="error inline-error" role="alert" hidden></p>
+                  <div class="pane-actions"><button id="edit-button">Vorschlag bearbeiten</button><button id="confirm-button" class="secondary">Korrektur speichern &amp; bestätigen</button><button id="reopen-button" class="secondary" hidden>Erneut bearbeiten</button></div>
                 </section>
               </div>
             </div>

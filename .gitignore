@@ -29,6 +29,16 @@ tmp/
 *.csv
 *.sqlite
 *.sqlite3
+*.jpg
+*.jpeg
+*.heic
+*.raw
+*.png
+*.webp
+*.mp4
+*.webm
+*.pfx
+*.p12
 
 # Editors / OS
 .vscode/

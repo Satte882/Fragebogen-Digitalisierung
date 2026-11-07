@@ -22,9 +22,13 @@ Login → je Anmeldung isolierter Arbeitsspeicher → Ordner/JPEG/PNG → normal
 
 ## Zugang und Sicherheit
 
-Admin und gemeinsamer Testlogin haben **gleiche fachliche Funktionen**; nur Admin verwaltet den Modelladapter. Verschiedene Anmeldungen des Testkontos teilen keine Uploads oder Exporte. Schreibende Routen benötigen CSRF-Token; alle Vorgangs-/Bild-IDs sind serverseitig auf die Sitzung beschränkt. Cookies HttpOnly/SameSite, in Produktion Secure; Bildbegrenzung, Dateinormalisierung, EXIF-Entfernung, generische API-Fehler. OpenRouter-Key nur serverseitig. Live-Aufrufe max. 25 pro Sitzung/80 insgesamt pro Prozess. Zusätzlich echtes API-Budgetlimit setzen.
+Admin und gemeinsamer Testlogin haben **gleiche fachliche Funktionen**; nur Admin verwaltet den Modelladapter. Verschiedene Anmeldungen des Testkontos teilen keine Uploads oder Exporte. Schreibende Routen benötigen CSRF-Token; alle Vorgangs-/Bild-IDs sind serverseitig auf die Sitzung beschränkt. Cookies HttpOnly/SameSite, in Produktion Secure; Bildbegrenzung, Dateinormalisierung, EXIF-Entfernung, generische API-Fehler. OpenRouter-Key nur serverseitig. Live-Aufrufe standardmäßig max. 100 pro Sitzung/250 insgesamt pro Prozess. Zusätzlich echtes API-Budgetlimit setzen.
 
 Ein einzelner Worker ist Voraussetzung, weil die Sessions im Arbeitsspeicher liegen. Bei Neustart, Logout oder Timeout gehen Arbeitsdaten verloren. Keine Datenbank. Für Render Free ist das vertretbar als zeitlich begrenzte **Demo**, nicht als dauerhaftes System.
+
+## Verarbeitungsläufe
+
+Ein Lauf belegt seine Bilder serverseitig und ist pro Vorgang idempotent, solange er läuft. In-Process-Worker teilen sich ein prozessweites Parallelitätslimit. Browser-Polling liest die Status im isolierten Arbeitsbereich. Der Anbieter wird beim Start pro Lauf festgelegt. Nur Timeout, Rate Limit und vorübergehende Anbieterfehler werden automatisch wiederholt. Die Wiederholungen respektieren begrenzten Backoff und einen kurzen Retry-After. Bei längerer Anbieterwartezeit bleibt der Fehler für den manuellen Neustart sichtbar. Jeder gesendete Aufruf belastet Sitzung und Prozess. Die Laufmetadaten enthalten Modell, Prompt-Version, UTC-Start, Dauer, Ergebnis und Anzahl der Aufrufe.
 
 ## Modellwechsel
 

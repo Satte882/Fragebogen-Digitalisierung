@@ -3,20 +3,19 @@ services:
     name: form-digitizer-demo
     runtime: python
     plan: free
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    autoDeployTrigger: "off"
+    buildCommand: python -m pip install -r requirements.txt
+    startCommand: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT --workers 1 --limit-concurrency 24
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
-        value: 3.12.8
+        value: "3.12.10"
       - key: APP_ENV
         value: production
       - key: MODEL_PROVIDER
         value: mock
-      - key: OPENROUTER_MODEL
-        value: ""
-      - key: OPENROUTER_API_KEY
-        sync: false
+      - key: ALLOW_LIVE_MODEL
+        value: "false"
       - key: ADMIN_PASSWORD_HASH
         sync: false
       - key: TEST_PASSWORD_HASH
@@ -24,8 +23,26 @@ services:
       - key: SESSION_SECRET
         generateValue: true
       - key: MAX_IMAGES_PER_SESSION
-        value: "20"
+        value: "40"
       - key: MAX_UPLOAD_MB
-        value: "10"
+        value: "5"
+      - key: MAX_BATCH_UPLOAD_MB
+        value: "120"
+      - key: MAX_WORKSPACE_MB
+        value: "48"
+      - key: MAX_SESSIONS
+        value: "4"
+      - key: IMAGE_MAX_EDGE
+        value: "1800"
+      - key: IMAGE_JPEG_QUALITY
+        value: "86"
+      - key: BATCH_PARALLELISM
+        value: "1"
+      - key: PROVIDER_RETRIES
+        value: "1"
+      - key: LIVE_CALLS_PER_SESSION
+        value: "40"
+      - key: LIVE_CALLS_GLOBAL
+        value: "80"
       - key: SESSION_TTL_MINUTES
-        value: "60"
+        value: "120"

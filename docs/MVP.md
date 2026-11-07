@@ -42,6 +42,7 @@ Einfaches Login mit Administrator- und Testrolle. Keine öffentliche Datenverarb
 - Unterstützte MVP-Eingaben: **JPEG und PNG**. Andere Formate erst nach Bedarf, keine automatische PDF-Erstellung.
 - Vorgangsname ist vor und nach dem Import editierbar (Beispiel: „Veranstaltung Nord – 02.05.2026“).
 - System vergibt eindeutige Vorgangs-ID und je Bild eine stabile Bild-ID; dazu Dateiname und Reihenfolge.
+- Standardmäßig sind 40 Bilder pro Sitzung möglich. Die 30-Bögen-Demo verarbeitet 26 grüne und vier gelbe Festfälle ohne Anbieteraufrufe.
 - Übersicht zeigt Bildanzahl, Vorschaubilder, Status, Fortschritt und Fehler. Ein einzelner Fehlversuch darf nicht den gesamten Batch zerstören.
 
 ### C. Batch-Übersicht
@@ -53,7 +54,7 @@ Jedes Bild hat einen Status:
 - **Fehler (rot)**: Bild unbrauchbar, API- oder Parserfehler, erneuter Versuch möglich.
 - **Final übernommen**: Mensch hat den Datensatz bestätigt; zusätzlich wird gespeichert, ob korrigiert wurde.
 
-Durch Auswahl eines Bildes öffnet sich die Detailansicht.
+Die Vorgangsübersicht zeigt standardmäßig „Zu prüfen“, wenn Prüffälle vorliegen. Sichtbare Filter mit Anzahl führen zu übernahmebereiten, bestätigten oder allen Bögen sowie zu technischen Fehlern, wenn vorhanden. Die Batch-Demo öffnet sich mit vorbereiteten Ergebnissen sofort. Erst die Auswahl eines Bildes öffnet dessen Detailansicht. Vorgänge können direkt in der Überschrift umbenannt und aus der eigenen Sitzung gelöscht werden. Während laufender Verarbeitung ist das Löschen gesperrt. Ein serverseitiger Lauf verarbeitet den Vorgang und übersteht das Neuladen der Seite innerhalb derselben Sitzung. Ausnahmen lassen sich filtern und nacheinander prüfen. Grüne Ergebnisse können gesammelt übernommen werden. Die Herkunft der Bestätigung wird intern getrennt erfasst.
 
 ### D. Dreispaltenansicht – immer dasselbe Prinzip
 
@@ -63,7 +64,7 @@ Durch Auswahl eines Bildes öffnet sich die Detailansicht.
 
 **Übernahmebereiter Fall:** Rechts stehen die Werte bereits als Vorschlag. Aktion „Final übernehmen“ übernimmt diese ohne Änderungen; optional kann der Nutzer auf „Bearbeiten“ wechseln.
 
-**Unklarer Fall:** Problemfelder werden auf Feldebene markiert; der Fall bleibt offen. Aktion „Manuell prüfen“ kopiert den Vorschlag nach rechts, aktiviert Eingabefelder; nach visueller Kontrolle und ggf. Korrektur wird „Final übernehmen“ möglich. Unveränderte KI-Ausgabe in der mittleren Spalte bleibt erhalten.
+**Unklarer Fall:** Problemfelder werden auf Feldebene markiert; der Fall bleibt offen. Beim Öffnen sind die vorgeschlagenen Werte sofort editierbar. „Korrektur speichern & bestätigen“ schließt den Bogen mit einem Klick ab und öffnet den nächsten Prüffall. Nach dem letzten Fall erscheint die Abschlussübersicht. Für Korrekturen ist zusätzlich eine ausdrückliche menschliche Belegbestätigung erforderlich. Unveränderte KI-Ausgabe in der mittleren Spalte bleibt erhalten.
 
 **Wichtige UX-Regel:** Ein eindeutig leeres Kästchen ist kein Fehler. Wenn ein Kreuz erkennbar aber keiner Option sicher zuordenbar ist, bleibt es unklar; die KI oder der Prüfer darf keine Antwort **raten**. Ein Korrekturvorgang darf nur den sichtbaren Formularinhalt getreu übertragen.
 
@@ -72,7 +73,7 @@ Durch Auswahl eines Bildes öffnet sich die Detailansicht.
 ### E. Abschluss und Export
 
 - Statusanzeige, z. B. „10 Fotos: 8 ohne Korrektur final übernommen, 2 manuell korrigiert, 0 offen“.
-- Aktion **„CSV exportieren“** exportiert **nur final bestätigte Datensätze**. Offene Bilder werden nicht stillschweigend mitexportiert; die Zahl der ausgelassenen Bilder wird klar angegeben.
+- Die Sammelbestätigung steht direkt unter der Prüfliste. Der CSV-Download ist der letzte Arbeitsschritt. **„CSV herunterladen“** exportiert **nur final bestätigte Datensätze**. Offene Bilder werden nicht stillschweigend mitexportiert; die Zahl der ausgelassenen Bilder wird klar angegeben.
 - Eine Zeile entspricht einem Foto/Formular; Vorgangs-ID, Name, Bild-ID, Dateiname, Q1–Q5, Feldstatus, deutscher Freitext und Prüfstatus sind enthalten.
 - Keine doppelte KI-Roh-Erkennung im CSV. Keine zwingende Datenbank.
 
@@ -90,10 +91,10 @@ Durch Auswahl eines Bildes öffnet sich die Detailansicht.
 ## 6. MVP-Abnahme
 
 - [ ] Fünf Fragen und Freitext sind auf dem neutralen Musterbogen enthalten.
-- [ ] Ordnerimport mit 10 Fotos funktioniert; Vorgangsname bleibt editierbar und Bilder bleiben zugeordnet.
+- [ ] Ordnerimport mit 30 Fotos funktioniert; Vorgangsname bleibt editierbar und Bilder bleiben zugeordnet.
 - [ ] Alle Fotos erscheinen mit eindeutiger Bild-ID und korrekt getrenntem Status.
 - [ ] KI liefert strukturierte Werte, Originaltranskript und deutsche Übersetzung oder markiert Unsicherheit.
-- [ ] Rechtes Prüffeld wird bei grünen Fällen vorausgefüllt; gelbe Fälle müssen über „Manuell prüfen“ bestätigt werden.
+- [ ] Rechtes Prüffeld wird bei grünen Fällen vorausgefüllt; gelbe Fälle sind direkt editierbar und müssen ausdrücklich final bestätigt werden.
 - [ ] Bei fehlenden Kreuzen wird **keine_antwort** und niemals ein erfundener Skalenwert ausgegeben.
 - [ ] Originalbild, ursprüngliche KI-Erkennung und finale Bestätigung bleiben im Arbeitsbereich vergleichbar.
 - [ ] Zwei verschiedene Testanmeldungen mit demselben Testlogin sehen keine gegenseitigen Arbeitsdaten.

@@ -18,6 +18,18 @@ def password_hash(password: str, salt: bytes | None = None) -> str:
     return f"scrypt${enc(salt)}${enc(digest)}"
 
 
+def valid_password_hash(stored: str) -> bool:
+    parts = stored.split('$')
+    if len(parts) != 3 or parts[0] != 'scrypt':
+        return False
+    try:
+        salt, digest = (base64.b64decode(value + '=' * (-len(value) % 4), altchars=b'-_', validate=True)
+                        for value in parts[1:])
+    except ValueError:
+        return False
+    return len(salt) == 16 and len(digest) == 64
+
+
 def verify_password(password: str, stored: str) -> bool:
     try:
         algorithm, salt, known = stored.split("$")
@@ -39,6 +51,7 @@ class Session:
     role: str
     created_at: float
     batches: dict = field(default_factory=dict)
+    live_calls: dict = field(default_factory=lambda: dict(sent=0, succeeded=0, failed=0, repeated=0))
 
 
 class WorkspaceStore:
@@ -47,6 +60,7 @@ class WorkspaceStore:
         self.now = now
         self.sessions: dict[str, Session] = {}
         self.login_attempts: dict[str, list[float]] = defaultdict(list)
+        self.global_login_attempts: list[float] = []
 
     def cleanup(self) -> None:
         now = self.now()
@@ -62,7 +76,11 @@ class WorkspaceStore:
 
     def is_rate_limited(self, ip: str) -> bool:
         self.cleanup()
-        return len(self.login_attempts[ip]) >= 8
+        self.global_login_attempts = [t for t in self.global_login_attempts if self.now() - t < 60]
+        if len(self.global_login_attempts) >= 40 or len(self.login_attempts.get(ip, [])) >= 8:
+            return True
+        self.global_login_attempts.append(self.now())
+        return False
 
     def record_login_attempt(self, ip: str) -> None:
         self.login_attempts[ip].append(self.now())

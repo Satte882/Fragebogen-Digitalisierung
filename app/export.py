@@ -17,7 +17,7 @@ def safe_cell(value: object) -> str:
     if value is None:
         return ""
     s = str(value)
-    if s.lstrip(" \t\r\n").startswith(("=", "+", "-", "@")):
+    if s.startswith(("\t", "\r", "\n")) or s.lstrip().startswith(("=", "+", "-", "@", "＝", "＋", "－", "＠")):
         return "'" + s
     return s
 

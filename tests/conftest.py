@@ -16,7 +16,7 @@ def application():
         session_secret='test-only-secret-' + 'a' * 48,
         model_provider='mock',
         app_env='development',
-        max_images_per_session=20,
+        max_images_per_session=40,
         max_upload_mb=10,
         session_ttl_minutes=60,
     )

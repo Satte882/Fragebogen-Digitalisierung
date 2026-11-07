@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "replace-with-image-id",
+      "requires_review": true,
+      "answers": {
+        "q1": {"value": 4, "status": "answered"},
+        "q2": {"value": null, "status": "no_answer"},
+        "q3": {"value": null, "status": "multiple"},
+        "q4": {"value": null, "status": "unreadable"},
+        "q5": {"value": 1, "status": "answered"}
+      },
+      "text_status": "translated",
+      "original_transcript": "Synthetic example.",
+      "german_translation": "Synthetisches Beispiel."
+    }
+  ]
+}

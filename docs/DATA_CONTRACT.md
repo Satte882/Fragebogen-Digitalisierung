@@ -1,6 +1,6 @@
 # Datenvertrag: Erkennung, Prüfung und CSV
 
-**Version:** 0.1 (konzeptionell) · **Status:** noch nicht implementiert
+**Version:** 0.1 · **Status:** Feld- und CSV-Regeln im MVP umgesetzt.
 
 ## Kernprinzipien
 
@@ -35,9 +35,15 @@ Freitext:
 - **text_status**: translated / empty / unreadable / review_required.
 - Unlesbares, unvollständiges oder schlecht übersetzbares Material wird gekennzeichnet; keine erdachten Sätze ergänzen.
 
+## Prüfhinweise und Bildbereiche
+
+Die Modellantwort kann `findings` mit `field`, `kind` und `reason` liefern. Das Feld bezeichnet `q1` bis `q5`, `text` oder `image`. Die API ergänzt bei Bedarf Hinweise aus den Feldstatus. Ein bewusst ausgelöster Demo-Prüfhinweis wird separat gekennzeichnet. Modellbefunde, Modellwarnungen und unsichere Feldstatus verhindern eine grüne Freigabeempfehlung.
+
+Optionale `regions` ordnen Feldern einen Bildbereich als `[links, oben, rechts, unten]` zu. Die Werte sind relativ zum normalisierten Originalbild und liegen zwischen 0 und 1. Ungültige Bereiche werden aus der strukturierten Anzeige entfernt. Die unveränderte Rohantwort bleibt zur Kontrolle erhalten. Modellbereiche sind Schätzungen. Befunde und Bildbereiche sind intern und erscheinen nicht in der CSV.
+
 ## Beispiel des internen Zwischendatensatzes
 
-Die nachfolgende Struktur illustriert den **Vertrag**, nicht eine bereits programmierte API.
+Das Beispiel fasst die fachlichen Felder zusammen. Die API liefert Vorgangsübersicht und Bilddetails getrennt. Das Bilddetail enthält die fünf Fragen direkt unter `raw` und gegebenenfalls unter `final`.
 
 ~~~json
 {
@@ -70,6 +76,14 @@ Die nachfolgende Struktur illustriert den **Vertrag**, nicht eine bereits progra
 ~~~
 
 **Achtung:** Der gesamte Zwischendatensatz ist **intern**. Erst nach der fachlichen Bestätigung wird ein **separater Exportdatensatz** erzeugt. Die Felder original_transcript, source_language, alle Modellwarnungen und die ursprüngliche KI-Rohantwort werden **nicht** als CSV-Spalten aufgenommen.
+
+## Bestätigungsherkunft und Qualität
+
+`classification` bewahrt die ursprüngliche technische Einordnung. Der aktuelle `status` bildet den Arbeitsstand ab. `confirmation_source` unterscheidet `bulk` (ohne individuelle Sichtprüfung), `individual` und `sample`. `review_mode` unterscheidet unverändert und korrigiert. Stichprobenbefunde bleiben intern erhalten. Bei inhaltlichen Korrekturen protokolliert der Server die betroffenen Felder, KI-Vorschlag und bestätigten Wert, Rolle, Zeitpunkt und Herkunft der menschlichen Belegbestätigung. Diese Angabe ist eine menschliche Erklärung. Die Anwendung prüft das Originalbild dabei nicht selbst. Wird eine als mehrfach erkannte Markierung zum Einzelwert, ist eine feldbezogene Begründung freiwillig. Die ausdrückliche Belegbestätigung bleibt erforderlich. Die gleiche Regel gilt für Demo und Upload. Bei mehreren gültigen Kreuzen bleibt der Status Mehrfachmarkierung. Die Abschlussübersicht zeigt nur Abweichungen zwischen dem ursprünglichen Vorschlag und der aktuell gültigen Bestätigung. Frühere Korrekturen bleiben intern erhalten. Diese Felder erweitern die bestehende CSV nicht.
+
+`GET /api/batches/{batch_id}/evaluation` liefert innerhalb der eigenen Sitzung eine private JSON-Auswertung der Live-Aufrufe, inklusive Roh-Erkennung in strukturierter Form, Klassifizierung und technischer Laufmetadaten. Festdaten und Mock werden ausgeschlossen. Die Bild-ID ist der Schlüssel zur separat und unabhängig erstellten [Sollwertvorlage](ground-truth.example.json). Dateien mit Messdaten nur lokal ablegen.
+
+Aufruf aus dem Projektordner: `python -m scripts.evaluate_quality local-data/ground-truth.json local-data/live-snapshot.json`. Vollständige Formulartreffer werden nur für Fälle mit Sollwerten für Originaltext, Übersetzung und Textstatus gezählt. Die Feldquote verwendet alle fünf Sollfelder je Fall. Bei grünen Fällen mit fehlender Textreferenz und korrekten bekannten Feldern bleibt das Ergebnis unbekannt. Eine bekannte Abweichung zählt auch dann als falsch grün. `false_green / green_fully_assessed` nutzt nur entscheidbare Fälle. `warnings_detected / warnings_expected` erfasst die nach Sollwerten erwarteten gelben Fälle. Kosten fehlen ohne verlässlichen Anbieterbetrag.
 
 ## CSV-Vertrag – nur bestätigte Datensätze
 

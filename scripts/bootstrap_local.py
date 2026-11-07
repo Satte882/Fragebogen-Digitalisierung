@@ -24,9 +24,9 @@ lines = [
     "OPENROUTER_API_KEY=",
     "OPENROUTER_MODEL=",
     "APP_ENV=development",
-    "MAX_IMAGES_PER_SESSION=20",
+    "MAX_IMAGES_PER_SESSION=40",
     "MAX_UPLOAD_MB=10",
-    "SESSION_TTL_MINUTES=60",
+    "SESSION_TTL_MINUTES=120",
     "",
 ]
 path.write_text("\n".join(lines), encoding="utf-8")
