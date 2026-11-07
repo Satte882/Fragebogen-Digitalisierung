@@ -331,9 +331,10 @@ def build_app(settings: Settings | None = None) -> FastAPI:
         if item["status"] == "review_required" and not item["review_started"]:
             raise HTTPException(409, "Zuerst „Manuell prüfen“ auswählen.")
         original = Recognition.model_validate(item["raw"])
-        if any(getattr(payload, f"q{i}").value is not None and getattr(original, f"q{i}").status != "answered"
+        if any(getattr(payload, f"q{i}").value is not None
+               and getattr(payload, f"q{i}").value != getattr(original, f"q{i}").value
                and not payload.evidence_confirmed for i in range(1, 6)):
-            raise HTTPException(422, "Nur mit bestätigtem sichtbarem Beleg dürfen ursprünglich leere/unklare Felder einen Zahlenwert erhalten.")
+            raise HTTPException(422, "Für jede neu eingetragene oder geänderte Bewertung ist ein sichtbarer Beleg zu bestätigen.")
         # A final choice may correct an AI error if the operator confirms a visible mark.
         clean_final = payload.model_dump(exclude={"evidence_confirmed"})
         if clean_final["text"]["text_status"] == "unreadable" and clean_final["text"]["german_translation"].strip():

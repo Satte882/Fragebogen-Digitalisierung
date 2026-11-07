@@ -108,6 +108,8 @@ def test_reopen_and_reconfirm(client):
     assert client.get(f'/api/batches/{bid}/export.csv').status_code==409
     payload=q_payload(detail['draft'])
     payload['q1']={'value':3,'status':'answered'}
+    assert client.post(route+'/confirm',headers=head,json=payload).status_code==422
+    payload['evidence_confirmed']=True
     assert client.post(route+'/confirm',headers=head,json=payload).status_code==200
     assert client.get(route).json()['review_mode']=='corrected'
 
