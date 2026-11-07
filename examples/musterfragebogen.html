@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Musterfragebogen – Form Digitizer</title>
+  <style>
+    :root { font-family: Arial, Helvetica, sans-serif; color: #182331; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #e9edf2; }
+    .page { width: 210mm; min-height: 297mm; background: #fff; margin: 16px auto; padding: 20mm; box-shadow: 0 3px 22px #0002; }
+    .eyebrow { text-transform: uppercase; font-size: 10pt; letter-spacing: 1px; color: #496273; }
+    h1 { font-size: 22pt; margin: 10px 0 6px; }
+    .subtitle { line-height: 1.45; margin-bottom: 26px; font-size: 11pt; }
+    .instructions { font-size: 10pt; border: 1px solid #abc1cb; padding: 10px 12px; margin-bottom: 26px; }
+    .row { padding: 14px 0 15px; border-bottom: 1px solid #d7e0e7; page-break-inside: avoid; }
+    .question { font-size: 11.5pt; font-weight: 600; margin-bottom: 11px; }
+    .choices { display: flex; justify-content: flex-end; gap: 22px; padding-right: 7px; align-items: center; }
+    .choice { font-size: 12pt; display: flex; align-items: center; gap: 6px; }
+    .box { border: 1.8px solid #182331; width: 9mm; height: 9mm; display: inline-block; }
+    h2 { margin-top: 29px; font-size: 13pt; }
+    .line { border-bottom: 1px solid #6c8090; height: 13mm; }
+    .footer { font-size: 9pt; color: #687b87; margin-top: 19px; display: flex; justify-content: space-between; }
+    @page { size: A4; margin: 0; }
+    @media print {
+      body { background: white; }
+      .page { margin: 0; padding: 20mm; box-shadow: none; width: 210mm; min-height: 297mm; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="eyebrow">Neutrales Testformular · Version fixed-5x4-v1</div>
+    <h1>Kurzer Feedback-Fragebogen</h1>
+    <p class="subtitle">Vielen Dank für Ihre Rückmeldung. Die Angaben auf diesem Musterformular dienen ausschließlich der Demonstration einer Formular-Digitalisierung.</p>
+    <div class="instructions">
+      <strong>Anleitung:</strong> Bitte markieren Sie pro Frage höchstens ein Kästchen.
+      1 = trifft gar nicht zu · 4 = trifft vollständig zu.
+      Falls Sie eine Frage nicht beantworten möchten, lassen Sie die Zeile frei.
+    </div>
+
+    <section aria-label="Bewertungsfragen">
+      <div class="row">
+        <div class="question">1. Die bereitgestellten Informationen waren verständlich.</div>
+        <div class="choices">
+          <span class="choice">1 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">2 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">3 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">4 <span class="box" aria-hidden="true"></span></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="question">2. Der Ablauf war gut organisiert.</div>
+        <div class="choices">
+          <span class="choice">1 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">2 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">3 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">4 <span class="box" aria-hidden="true"></span></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="question">3. Die zeitliche Planung war nachvollziehbar.</div>
+        <div class="choices">
+          <span class="choice">1 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">2 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">3 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">4 <span class="box" aria-hidden="true"></span></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="question">4. Bei Fragen erhielt ich hilfreiche Unterstützung.</div>
+        <div class="choices">
+          <span class="choice">1 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">2 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">3 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">4 <span class="box" aria-hidden="true"></span></span>
+        </div>
+      </div>
+      <div class="row">
+        <div class="question">5. Insgesamt war ich mit der Durchführung zufrieden.</div>
+        <div class="choices">
+          <span class="choice">1 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">2 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">3 <span class="box" aria-hidden="true"></span></span>
+          <span class="choice">4 <span class="box" aria-hidden="true"></span></span>
+        </div>
+      </div>
+    </section>
+
+    <section aria-label="Freitextkommentar">
+      <h2>Was hat Ihnen gefallen – und was können wir verbessern?</h2>
+      <p style="font-size:10pt;">Sie können gern in Ihrer bevorzugten Sprache schreiben.</p>
+      <div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div>
+    </section>
+
+    <div class="footer">
+      <span>Selbst erstelltes synthetisches Testformular</span>
+      <span>Form Digitizer · FD-MVP-01</span>
+    </div>
+  </main>
+</body>
+</html>
